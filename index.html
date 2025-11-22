@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>励小加的奇妙工具s</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px; 
+            padding: 20px 0; 
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 8px; 
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+
+        .title strong {
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 12px; 
+            font-weight: 300;
+        }
+
+        .demo-link {
+            font-size: 0.9rem;
+            color: #64748b;
+            text-decoration: none;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 2px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .demo-link:hover {
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .category-section {
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .category-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .expand-btn, .sort-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .expand-btn:hover, .sort-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .sort-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .tool-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: 1px solid #f1f5f9;
+            flex: 1;
+        }
+
+        .tool-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .tool-name {
+            font-size: 1.1rem;
+            font-weight: 520;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .tool-desc {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        
+        .vote-section {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            height: 28px;
+            position: relative;
+        }
+
+        .vote-toggle {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vote-toggle:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .vote-options {
+            display: none;
+            gap: 4px;
+            align-items: center;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .vote-options.show {
+            display: flex;
+        }
+
+        .vote-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .vote-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .vote-btn.voted {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .vote-count {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            margin-left: 2px;
+        }
+
+        .coming-soon {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0 15px; 
+            margin-top: 30px; 
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 12px; 
+        }
+
+        .footer-link {
+            color: #64748b;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-link:hover {
+            color: #3b82f6;
+        }
+
+        .support-link:hover {
+            color: #ef4444;
+        }
+
+        .feedback {
+            margin-bottom: 12px; 
+            font-size: 0.9rem;
+            color: #64748b;
+            line-height: 1.4; 
+        }
+
+        .feedback a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .feedback a:hover {
+            text-decoration: underline;
+        }
+
+        .copyright {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.4; 
+        }
+
+        .license {
+            margin-top: 4px; 
+            font-size: 0.8rem;
+            line-height: 1.4; 
+        }
+
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            animation: modalFadeIn 0.3s ease;
+            box-shadow: 0 20px 25px rgba(0,0,0,0.1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: #f8fafc;
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .close-modal {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .close-modal:hover {
+            background: #475569;
+        }
+
+        .tool-item.hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 1.7rem;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .category-controls {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .vote-options {
+                position: static;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">励小加的<strong>奇妙工具</strong>s</h1>
+            <p class="subtitle">有用的没用的有趣的无趣的好玩的报玩的全都有~哈！</p>
+            <a href="https://space.bilibili.com/557858654" target="_blank" class="demo-link">
+                <span>📺</span> 工具演示/视频说明
+            </a>
+        </div>
+
+        <!-- 艺术类工具 -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">艺术类</h2>
+                <div class="category-controls">
+                    <button class="sort-btn active" data-category="painting">默认排序</button>
+                    <button class="expand-btn" data-category="painting">展开</button>
+                </div>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-item">
+                    <a href="hsb-hsl-trainer.html" class="tool-card">
+                        <h3 class="tool-name">HSB/HLS 抓色练习工具</h3>
+                        <p class="tool-desc">用于感受颜色和HSB/HLS模型，锻炼抓色自信</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="hsb-color" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="hsb-color" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="hsb-color" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item">
+                    <a href="shape-copy-tool.html" class="tool-card">
+                        <h3 class="tool-name">（待上传）基础抓型临摹练习助手</h3>
+                        <p class="tool-desc">通过临摹练习提升基础造型能力，适合绘画初学者</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="shape-copy" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="shape-copy" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="shape-copy" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item">
+                    <a href="pixel-tool.html" class="tool-card">
+                        <h3 class="tool-name">（待上传）像素画工坊</h3>
+                        <p class="tool-desc">创建和编辑像素艺术，支持多种像素画工具和调色板</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="pixel-tool" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="pixel-tool" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="pixel-tool" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 隐藏的卡片 - 用于测试展开功能 -->
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="perspective" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="perspective" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="perspective" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="lighting" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="lighting" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="lighting" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="color-theory" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="color-theory" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="color-theory" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 记录类工具 -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">记录类</h2>
+                <div class="category-controls">
+                    <button class="sort-btn active" data-category="recording">默认排序</button>
+                    <button class="expand-btn" data-category="recording">展开</button>
+                </div>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-item">
+                    <a href="positive-feedback.html" class="tool-card">
+                        <h3 class="tool-name">（待上传）正反馈成长助手</h3>
+                        <p class="tool-desc">记录积极反馈，建立成长轨迹，增强自我认同感</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="positive-feedback" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="positive-feedback" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="positive-feedback" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item">
+                    <a href="energy-tracker.html" class="tool-card">
+                        <h3 class="tool-name">（待上传）计划与能量追踪</h3>
+                        <p class="tool-desc">追踪日常能量波动，合理安排任务，提高生产力</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="energy-tracker" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="energy-tracker" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="energy-tracker" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="time" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="time" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="time" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 隐藏的卡片 - 用于测试展开功能 -->
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="goal" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="goal" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="goal" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="notes" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="notes" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="notes" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 其它工具 -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">其它</h2>
+                <div class="category-controls">
+                    <button class="sort-btn active" data-category="others">默认排序</button>
+                    <button class="expand-btn" data-category="others">展开</button>
+                </div>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-item">
+                    <a href="task-timer.html" class="tool-card">
+                        <h3 class="tool-name">（待上传）多任务计时管理器</h3>
+                        <p class="tool-desc">同时管理多个任务的计时，提高多任务处理效率</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="task-timer" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="task-timer" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="task-timer" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item">
+                    <a href="auto-queue.html" class="tool-card">
+                        <h3 class="tool-name">（待上传）网页版自动滚动提词器</h3>
+                        <p class="tool-desc">自动滚动文本，适用于演讲、视频录制等场景</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="auto-queue" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="auto-queue" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="auto-queue" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="converter" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="converter" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="converter" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 隐藏的卡片 - 用于测试展开功能 -->
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="password" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="password" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="password" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-item hidden">
+                    <a href=" " class="tool-card coming-soon">
+                        <h3 class="tool-name">正在开发中...</h3>
+                        <p class="tool-desc">在做了在做了</p>
+                    </a>
+                    <div class="vote-section">
+                        <button class="vote-toggle">标记</button>
+                        <div class="vote-options">
+                            <button class="vote-btn" data-tool="qrcode" data-vote="useful">有用<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="qrcode" data-vote="fun">有趣<span class="vote-count">0</span></button>
+                            <button class="vote-btn" data-tool="qrcode" data-vote="playful">好玩<span class="vote-count">0</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-links">
+                <a href="#" class="footer-link support-link" id="footerDonateLink" style="display: none;">
+                    <span>❤️</span> 支持开发者
+                </a>
+            </div>
+            <div class="feedback">
+                许愿与反馈：li-xiao-jia@foxmail.com 或 在B站视频下留言/充电
+            </div>
+            <div class="copyright">
+                <div>Copyright © 2025 励小加. All rights reserved.</div>
+                <div class="license">所有工具仅供个人学习和非商业用途，商用请联系作者授权。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 捐款模态框 -->
+    <div id="donateModal" class="modal">
+        <div class="modal-content">
+            <h3>感谢您的支持！</h3>
+            <p>您的支持将帮助我开发更多有趣工具</p>
+            <div class="qr-code">
+                <img src="qrcode.jpg" alt="支持开发者" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+            </div>
+            <p style="font-size: 0.85rem; color: #666; margin: 10px 0;">扫描二维码支持开发者</p>
+            <button class="close-modal" id="closeModal">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 标记数据存储
+        let voteData = JSON.parse(localStorage.getItem('toolVotes')) || {};
+        let userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        
+        // 初始化标记显示
+        function initializeVotes() {
+            document.querySelectorAll('.vote-btn').forEach(btn => {
+                const tool = btn.dataset.tool;
+                const voteType = btn.dataset.vote;
+                const count = voteData[tool]?.[voteType] || 0;
+                btn.querySelector('.vote-count').textContent = count;
+                
+                // 检查用户是否已经投过票
+                if (userVotes[tool] && userVotes[tool].includes(voteType)) {
+                    btn.classList.add('voted');
+                } else {
+                    btn.classList.remove('voted');
+                }
+            });
+        }
+
+        // 标记按钮展开/收起功能
+        document.addEventListener('click', function(e) {
+            // 点击标记切换按钮
+            if (e.target.classList.contains('vote-toggle')) {
+                e.stopPropagation();
+                const voteSection = e.target.closest('.vote-section');
+                const voteOptions = voteSection.querySelector('.vote-options');
+                
+                // 关闭其他打开的标记选项
+                document.querySelectorAll('.vote-options.show').forEach(options => {
+                    if (options !== voteOptions) {
+                        options.classList.remove('show');
+                        options.previousElementSibling.style.display = 'block';
+                    }
+                });
+                
+                // 切换显示状态
+                voteOptions.classList.toggle('show');
+                e.target.style.display = voteOptions.classList.contains('show') ? 'none' : 'block';
+            }
+            
+            // 点击标记选项
+            if (e.target.classList.contains('vote-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const btn = e.target;
+                const tool = btn.dataset.tool;
+                const voteType = btn.dataset.vote;
+                
+                // 初始化数据结构
+                if (!userVotes[tool]) userVotes[tool] = [];
+                if (!voteData[tool]) voteData[tool] = {};
+                
+                const currentVotes = userVotes[tool];
+                const isAlreadyVoted = currentVotes.includes(voteType);
+                
+                if (isAlreadyVoted) {
+                    // 取消标记
+                    voteData[tool][voteType]--;
+                    userVotes[tool] = currentVotes.filter(v => v !== voteType);
+                    btn.classList.remove('voted');
+                } else {
+                    // 检查是否已达到标记上限
+                    if (currentVotes.length >= 3) {
+                        alert('每个工具最多只能投3票哦！');
+                        return;
+                    }
+                    
+                    // 标记
+                    voteData[tool][voteType] = (voteData[tool][voteType] || 0) + 1;
+                    userVotes[tool].push(voteType);
+                    btn.classList.add('voted');
+                }
+                
+                // 保存数据
+                localStorage.setItem('toolVotes', JSON.stringify(voteData));
+                localStorage.setItem('userVotes', JSON.stringify(userVotes));
+                
+                // 更新显示
+                initializeVotes();
+                
+                // 如果当前是标记排序，更新排序
+                document.querySelectorAll('.sort-btn').forEach(sortBtn => {
+                    if (sortBtn.textContent === '标记排序' && sortBtn.classList.contains('active')) {
+                        const categorySection = sortBtn.closest('.category-section');
+                        sortByVotes(categorySection);
+                    }
+                });
+            }
+            
+            // 点击其他地方收起所有标记选项
+            if (!e.target.closest('.vote-section')) {
+                document.querySelectorAll('.vote-options.show').forEach(options => {
+                    options.classList.remove('show');
+                    options.previousElementSibling.style.display = 'block';
+                });
+            }
+        });
+
+        // 排序功能
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const category = this.dataset.category;
+                const categorySection = this.closest('.category-section');
+                const allSortBtns = categorySection.querySelectorAll('.sort-btn');
+                
+                // 切换排序按钮状态
+                allSortBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                if (this.textContent === '默认排序') {
+                    // 切换到标记排序
+                    this.textContent = '标记排序';
+                    sortByVotes(categorySection);
+                } else {
+                    // 切换回默认排序
+                    this.textContent = '默认排序';
+                    sortByDefault(categorySection);
+                }
+            });
+        });
+
+        function sortByVotes(categorySection) {
+            const toolItems = Array.from(categorySection.querySelectorAll('.tool-item:not(.hidden)'));
+            
+            toolItems.sort((a, b) => {
+                const toolA = a.querySelector('.vote-btn').dataset.tool;
+                const toolB = b.querySelector('.vote-btn').dataset.tool;
+                
+                const votesA = voteData[toolA] ? Object.values(voteData[toolA]).reduce((sum, val) => sum + val, 0) : 0;
+                const votesB = voteData[toolB] ? Object.values(voteData[toolB]).reduce((sum, val) => sum + val, 0) : 0;
+                
+                return votesB - votesA;
+            });
+            
+            const toolsGrid = categorySection.querySelector('.tools-grid');
+            toolItems.forEach(item => toolsGrid.appendChild(item));
+        }
+
+        function sortByDefault(categorySection) {
+            const toolItems = Array.from(categorySection.querySelectorAll('.tool-item:not(.hidden)'));
+            const toolsGrid = categorySection.querySelector('.tools-grid');
+            
+            // 恢复原始顺序
+            toolItems.sort((a, b) => {
+                const indexA = parseInt(a.dataset.index) || 0;
+                const indexB = parseInt(b.dataset.index) || 0;
+                return indexA - indexB;
+            });
+            
+            toolItems.forEach(item => toolsGrid.appendChild(item));
+        }
+
+        // 展开功能修复
+        document.querySelectorAll('.expand-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.dataset.category;
+                const categorySection = this.closest('.category-section');
+                const hiddenItems = categorySection.querySelectorAll('.tool-item.hidden');
+                const allItems = categorySection.querySelectorAll('.tool-item');
+                
+                if (hiddenItems.length > 0) {
+                    // 展开隐藏的卡片
+                    hiddenItems.forEach(item => {
+                        item.classList.remove('hidden');
+                    });
+                    this.textContent = '收起';
+                } else {
+                    // 收起额外卡片（只保留前三个）
+                    allItems.forEach((item, index) => {
+                        if (index >= 3) {
+                            item.classList.add('hidden');
+                        }
+                    });
+                    this.textContent = '展开';
+                }
+            });
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeVotes();
+            
+            // 为每个工具项设置索引，用于默认排序
+            document.querySelectorAll('.category-section').forEach(section => {
+                const allItems = section.querySelectorAll('.tool-item');
+                allItems.forEach((item, index) => {
+                    item.dataset.index = index;
+                    if (index >= 3) {
+                        item.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // 捐款模态框功能
+        const footerDonateLink = document.getElementById('footerDonateLink');
+        const donateModal = document.getElementById('donateModal');
+        const closeModal = document.getElementById('closeModal');
+
+        footerDonateLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            donateModal.style.display = 'flex';
+        });
+
+        closeModal.addEventListener('click', () => {
+            donateModal.style.display = 'none';
+        });
+
+        donateModal.addEventListener('click', (e) => {
+            if (e.target === donateModal) {
+                donateModal.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                donateModal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
