@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta name="author" content="励小加"> 
+<meta name="copyright" content="© 2026 励小加. 保留所有权利。">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间点位笔记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.4;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0px;
+            overflow: auto;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .card:first-of-type {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+        
+        .timer-display {
+            font-size: 30px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 600;
+            color: #4a90e2;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+        
+        .timer-display:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .timer-display::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 20;
+            margin-bottom: 3px;
+        }
+        
+        .timer-display:hover::after {
+            opacity: 1;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 8px 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+            min-width: 0;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .btn-pause {
+            background-color: #ff9500;
+        }
+        
+        .btn-pause:hover {
+            background-color: #e68500;
+        }
+        
+        .btn-speed {
+            background-color: #5a9ae6;
+            font-size: 13px;
+        }
+        
+        .current-time-display {
+            background-color: #f5f5f5;
+            padding: 6px;
+            border-radius: 3px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .timestamps-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 6px;
+        }
+        
+        .timestamps-header h3 {
+            font-size: 15px;
+            margin: 0;
+            white-space: nowrap;
+        }
+        
+        .list-title-input {
+            flex: 1;
+            padding: 5px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            background-color: #f9f9f9;
+        }
+        
+        .list-title-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background-color: white;
+        }
+        
+        .timestamps-list {
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            overflow-y: visible;
+        }
+        
+        .timestamp-item {
+            padding: 5px 6px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .timestamp-item:last-child {
+            border-bottom: none;
+        }
+        
+        .timestamp-text {
+            min-width: 65px;
+            font-weight: 500;
+            margin-right: 2px;
+            cursor: pointer;
+            padding: 3px 4px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+            user-select: none;
+            position: relative;
+        }
+        
+        .timestamp-text:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .quick-symbols {
+            display: flex;
+            margin-right: 4px;
+            gap: 1px;
+        }
+        
+        .symbol-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 2px;
+            line-height: 1;
+            transition: transform 0.1s;
+            color: inherit;
+        }
+        
+        .symbol-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .timestamp-note {
+            flex: 1;
+            padding: 5px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            margin-right: 6px;
+            min-width: 0;
+            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        }
+        
+        .timestamp-note:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        
+        .timestamp-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .copy-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 6px;
+            border-radius: 2px;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+        
+        .copy-btn {
+            color: #4a90e2;
+        }
+        
+        .copy-btn:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+        }
+        
+        .delete-btn {
+            color: #ff6b6b;
+        }
+        
+        .delete-btn:hover {
+            background-color: rgba(255, 107, 107, 0.1);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        
+        .clear-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .clear-btn:hover {
+            background-color: #ff5252;
+        }
+        
+        .export-btn {
+            background-color: #34c759;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .export-btn:hover {
+            background-color: #2db34a;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 16px;
+            border-radius: 6px;
+            width: 340px;
+            max-width: 90%;
+        }
+        
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .modal-message {
+            margin: 12px 0;
+            text-align: center;
+            color: #666;
+        }
+        
+        .time-adjust {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .time-value {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 4px 0;
+            min-width: 55px;
+            text-align: center;
+            padding: 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 3px;
+            background: white;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .time-value:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        
+        .adjust-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+        
+        .adjust-btn:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .adjust-btn.active {
+            background-color: #2a6bb2;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .modal-buttons .btn {
+            flex: 1;
+        }
+        
+        .reset-time-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        
+        .reset-time-btn:hover {
+            background-color: #ff5252;
+        }
+        
+        .confirm-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .confirm-buttons .btn {
+            flex: 1;
+        }
+        
+        .export-preview {
+            width: 480px;
+            max-width: 90%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-textarea {
+            flex: 1;
+            margin: 12px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 12px;
+            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 40vh;
+            background-color: white;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .preview-textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+        
+        .preview-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .preview-controls .btn {
+            flex: 1;
+            min-width: 100px;
+        }		
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="card">
+                <div class="timer-display" id="timer-display" data-tooltip="点击获取时间">00:00:00</div>
+                
+                <div class="controls">
+                    <button class="btn" id="start-timer-btn">开始计时</button>
+                    <button class="btn btn-speed" id="speed-btn">1.0X</button>
+                    <button class="btn" id="adjust-time-btn">调整时间</button>
+                </div>
+                
+                <div class="current-time-display" id="current-time-display" style="display: none;">
+                    <span>已获取: <strong id="current-time-text">00:00:00</strong></span>
+                    <span>已复制到剪贴板</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="timestamps-header">
+                    <h3 title="双击时间可编辑">已获取时间</h3>
+                    <input type="text" class="list-title-input" id="list-title-input" placeholder="列表标题（导出用）" maxlength="50">
+                </div>
+                <div class="timestamps-list" id="timestamps-list">
+                </div>
+                <div class="action-buttons">
+                    <button class="clear-btn" id="clear-timestamps-btn">清空所有</button>
+                    <button class="export-btn" id="export-timestamps-btn">导出</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="time-modal">
+        <div class="modal-content">
+            <div class="modal-title">调整时间</div>
+            <div class="time-adjust">
+                <div class="time-unit">
+                    <button class="adjust-btn" id="hour-up">+</button>
+                    <input type="number" class="time-value" id="hour-value" value="00" min="0" max="99">
+                    <button class="adjust-btn" id="hour-down">-</button>
+                    <div>时</div>
+                </div>
+                <div style="font-size: 16px; margin-top: 8px;">:</div>
+                <div class="time-unit">
+                    <button class="adjust-btn" id="minute-up">+</button>
+                    <input type="number" class="time-value" id="minute-value" value="00" min="0" max="59">
+                    <button class="adjust-btn" id="minute-down">-</button>
+                    <div>分</div>
+                </div>
+                <div style="font-size: 16px; margin-top: 8px;">:</div>
+                <div class="time-unit">
+                    <button class="adjust-btn" id="second-up">+</button>
+                    <input type="number" class="time-value" id="second-value" value="00" min="0" max="59">
+                    <button class="adjust-btn" id="second-down">-</button>
+                    <div>秒</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" id="confirm-adjust">确认</button>
+                <button class="btn" id="cancel-adjust">取消</button>
+            </div>
+            <button class="reset-time-btn" id="reset-time-btn">重置为00:00:00</button>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-timestamp-modal">
+        <div class="modal-content">
+            <div class="modal-title">编辑时间</div>
+            <div class="time-adjust">
+                <div class="time-unit">
+                    <button class="adjust-btn" id="edit-hour-up">+</button>
+                    <input type="number" class="time-value" id="edit-hour-value" value="00" min="0" max="99">
+                    <button class="adjust-btn" id="edit-hour-down">-</button>
+                    <div>时</div>
+                </div>
+                <div style="font-size: 16px; margin-top: 8px;">:</div>
+                <div class="time-unit">
+                    <button class="adjust-btn" id="edit-minute-up">+</button>
+                    <input type="number" class="time-value" id="edit-minute-value" value="00" min="0" max="59">
+                    <button class="adjust-btn" id="edit-minute-down">-</button>
+                    <div>分</div>
+                </div>
+                <div style="font-size: 16px; margin-top: 8px;">:</div>
+                <div class="time-unit">
+                    <button class="adjust-btn" id="edit-second-up">+</button>
+                    <input type="number" class="time-value" id="edit-second-value" value="00" min="0" max="59">
+                    <button class="adjust-btn" id="edit-second-down">-</button>
+                    <div>秒</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" id="confirm-edit">确认</button>
+                <button class="btn" id="cancel-edit">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="confirm-title">确认操作</div>
+            <div class="modal-message" id="confirm-message"></div>
+            <div class="confirm-buttons">
+                <button class="btn" id="confirm-yes">确认</button>
+                <button class="btn" id="confirm-no">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="export-preview-modal">
+        <div class="modal-content export-preview">
+            <div class="modal-title">导出预览</div>
+            
+            <textarea class="preview-textarea" id="preview-textarea"></textarea>
+            
+            <div class="preview-controls">
+                <button class="btn" id="copy-preview-btn">复制内容</button>
+                <button class="btn" id="download-preview-btn">下载文件</button>
+                <button class="btn" id="close-preview-btn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const timerDisplay = document.getElementById('timer-display');
+        const startTimerBtn = document.getElementById('start-timer-btn');
+        const speedBtn = document.getElementById('speed-btn');
+        const adjustTimeBtn = document.getElementById('adjust-time-btn');
+        const currentTimeDisplay = document.getElementById('current-time-display');
+        const currentTimeText = document.getElementById('current-time-text');
+        const timestampsList = document.getElementById('timestamps-list');
+        const clearTimestampsBtn = document.getElementById('clear-timestamps-btn');
+        const exportTimestampsBtn = document.getElementById('export-timestamps-btn');
+        const listTitleInput = document.getElementById('list-title-input');
+        
+        const timeModal = document.getElementById('time-modal');
+        const hourValue = document.getElementById('hour-value');
+        const minuteValue = document.getElementById('minute-value');
+        const secondValue = document.getElementById('second-value');
+        const confirmAdjust = document.getElementById('confirm-adjust');
+        const cancelAdjust = document.getElementById('cancel-adjust');
+        const resetTimeBtn = document.getElementById('reset-time-btn');
+        
+        const editTimestampModal = document.getElementById('edit-timestamp-modal');
+        const editHourValue = document.getElementById('edit-hour-value');
+        const editMinuteValue = document.getElementById('edit-minute-value');
+        const editSecondValue = document.getElementById('edit-second-value');
+        const confirmEdit = document.getElementById('confirm-edit');
+        const cancelEdit = document.getElementById('cancel-edit');
+        
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmTitle = document.getElementById('confirm-title');
+        const confirmMessage = document.getElementById('confirm-message');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
+        
+        const exportPreviewModal = document.getElementById('export-preview-modal');
+        const previewTextarea = document.getElementById('preview-textarea');
+        const copyPreviewBtn = document.getElementById('copy-preview-btn');
+        const downloadPreviewBtn = document.getElementById('download-preview-btn');
+        const closePreviewBtn = document.getElementById('close-preview-btn');
+        
+        let timerInterval;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
+        let currentSpeed = 1.0;
+        const speeds = [1.0, 1.5, 2.0, 3.0];
+        let speedIndex = 0;
+        
+        let timestampsData = [];
+        let editingTimestampIndex = -1;
+        
+        let longPressInterval;
+        let longPressTimeout;
+        let currentAdjustBtn = null;
+        
+        let confirmCallback = null;
+        
+        let doubleClickTimer = null;
+        
+        let wakeLock = null;
+        
+        initEventListeners();
+        renderTimestampsList();
+        
+        window.addEventListener('beforeunload', function (e) {
+            if (timestampsData.length > 0 || timerSeconds > 0) {
+                e.preventDefault();
+                e.returnValue = '你有未保存的时间点位数据，刷新页面将导致数据丢失。确定要离开吗？';
+            }
+        });
+        
+        function startTimer() {
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                let lastTime = Date.now();
+                
+                timerInterval = setInterval(() => {
+                    const now = Date.now();
+                    const delta = (now - lastTime) / 1000;
+                    timerSeconds += delta * currentSpeed;
+                    lastTime = now;
+                    updateTimerDisplay();
+                }, 16);
+                
+                startTimerBtn.textContent = '暂停';
+                startTimerBtn.classList.add('btn-pause');
+                
+                if ('wakeLock' in navigator) {
+                    requestWakeLock();
+                }
+            }
+        }
+        
+        function pauseTimer() {
+            if (isTimerRunning) {
+                isTimerRunning = false;
+                clearInterval(timerInterval);
+                startTimerBtn.textContent = '继续';
+                startTimerBtn.classList.remove('btn-pause');
+                
+                if (wakeLock) {
+                    releaseWakeLock();
+                }
+            }
+        }
+        
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                
+                wakeLock.addEventListener('release', () => {
+                    wakeLock = null;
+                });
+                
+                document.addEventListener('visibilitychange', async () => {
+                    if (wakeLock !== null && document.visibilityState === 'visible' && isTimerRunning) {
+                        try {
+                            await requestWakeLock();
+                        } catch (err) {}
+                    }
+                });
+            } catch (err) {}
+        }
+        
+        async function releaseWakeLock() {
+            if (wakeLock) {
+                try {
+                    await wakeLock.release();
+                    wakeLock = null;
+                } catch (err) {}
+            }
+        }
+        
+        function setupLongPress(btn, unit, direction) {
+            const startLongPress = () => {
+                currentAdjustBtn = btn;
+                btn.classList.add('active');
+                
+                adjustInputTime(unit, direction, getInputElement(unit));
+                
+                longPressTimeout = setTimeout(() => {
+                    longPressInterval = setInterval(() => {
+                        adjustInputTime(unit, direction, getInputElement(unit));
+                    }, 100);
+                }, 500);
+            };
+            
+            const stopLongPress = () => {
+                if (longPressInterval) {
+                    clearInterval(longPressInterval);
+                    longPressInterval = null;
+                }
+                if (longPressTimeout) {
+                    clearTimeout(longPressTimeout);
+                    longPressTimeout = null;
+                }
+                if (currentAdjustBtn) {
+                    currentAdjustBtn.classList.remove('active');
+                    currentAdjustBtn = null;
+                }
+            };
+            
+            btn.addEventListener('mousedown', startLongPress);
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startLongPress();
+            });
+            
+            btn.addEventListener('mouseup', stopLongPress);
+            btn.addEventListener('mouseleave', stopLongPress);
+            btn.addEventListener('touchend', stopLongPress);
+            btn.addEventListener('touchcancel', stopLongPress);
+            
+            document.addEventListener('mouseup', (e) => {
+                if (currentAdjustBtn && !currentAdjustBtn.contains(e.target)) {
+                    stopLongPress();
+                }
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                if (currentAdjustBtn && !currentAdjustBtn.contains(e.target)) {
+                    stopLongPress();
+                }
+            });
+        }
+        
+        function setupModalCloseHandlers() {            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
+                }
+            });
+        }
+        
+        function initEventListeners() {
+            timerDisplay.addEventListener('click', function() {
+                if (isTimerRunning || timerSeconds > 0) {
+                    const timestamp = formatTime(timerSeconds);
+                    
+                    currentTimeText.textContent = timestamp;
+                    currentTimeDisplay.style.display = 'flex';
+                    
+                    copyToClipboard(timestamp);
+                    
+                    addTimestampToList(timestamp, timerSeconds);
+                    
+                    setTimeout(() => {
+                        currentTimeDisplay.style.display = 'none';
+                    }, 1000);
+                }
+            });
+            
+            startTimerBtn.addEventListener('click', function() {
+                if (!isTimerRunning) {
+                    startTimer();
+                } else {
+                    pauseTimer();
+                }
+            });
+            
+            speedBtn.addEventListener('click', function() {
+                speedIndex = (speedIndex + 1) % speeds.length;
+                currentSpeed = speeds[speedIndex];
+                speedBtn.textContent = `${currentSpeed}X`;
+                
+                if (isTimerRunning) {
+                    pauseTimer();
+                    startTimer();
+                }
+            });
+            
+            adjustTimeBtn.addEventListener('click', function() {
+                const hours = Math.floor(timerSeconds / 3600);
+                const minutes = Math.floor((timerSeconds % 3600) / 60);
+                const seconds = Math.floor(timerSeconds % 60);
+                
+                hourValue.value = hours.toString().padStart(2, '0');
+                minuteValue.value = minutes.toString().padStart(2, '0');
+                secondValue.value = seconds.toString().padStart(2, '0');
+                
+                timeModal.style.display = 'flex';
+            });
+            
+            setupLongPress(document.getElementById('hour-up'), 'hour', 1);
+            setupLongPress(document.getElementById('hour-down'), 'hour', -1);
+            setupLongPress(document.getElementById('minute-up'), 'minute', 1);
+            setupLongPress(document.getElementById('minute-down'), 'minute', -1);
+            setupLongPress(document.getElementById('second-up'), 'second', 1);
+            setupLongPress(document.getElementById('second-down'), 'second', -1);
+            
+            setupLongPress(document.getElementById('edit-hour-up'), 'edit-hour', 1);
+            setupLongPress(document.getElementById('edit-hour-down'), 'edit-hour', -1);
+            setupLongPress(document.getElementById('edit-minute-up'), 'edit-minute', 1);
+            setupLongPress(document.getElementById('edit-minute-down'), 'edit-minute', -1);
+            setupLongPress(document.getElementById('edit-second-up'), 'edit-second', 1);
+            setupLongPress(document.getElementById('edit-second-down'), 'edit-second', -1);
+            
+            hourValue.addEventListener('change', () => validateTimeInput(hourValue));
+            minuteValue.addEventListener('change', () => validateTimeInput(minuteValue));
+            secondValue.addEventListener('change', () => validateTimeInput(secondValue));
+            
+            editHourValue.addEventListener('change', () => validateTimeInput(editHourValue));
+            editMinuteValue.addEventListener('change', () => validateTimeInput(editMinuteValue));
+            editSecondValue.addEventListener('change', () => validateTimeInput(editSecondValue));
+            
+            resetTimeBtn.addEventListener('click', function() {
+                hourValue.value = '00';
+                minuteValue.value = '00';
+                secondValue.value = '00';
+            });
+            
+            confirmAdjust.addEventListener('click', function() {
+                const hours = parseInt(hourValue.value) || 0;
+                const minutes = parseInt(minuteValue.value) || 0;
+                const seconds = parseInt(secondValue.value) || 0;
+                
+                timerSeconds = hours * 3600 + minutes * 60 + seconds;
+                updateTimerDisplay();
+                timeModal.style.display = 'none';
+                
+                if (!isTimerRunning) {
+                    startTimerBtn.textContent = '开始计时';
+                    startTimerBtn.classList.remove('btn-pause');
+                }
+            });
+            
+            cancelAdjust.addEventListener('click', function() {
+                timeModal.style.display = 'none';
+            });
+            
+            confirmEdit.addEventListener('click', function() {
+                const hours = parseInt(editHourValue.value) || 0;
+                const minutes = parseInt(editMinuteValue.value) || 0;
+                const seconds = parseInt(editSecondValue.value) || 0;
+                
+                const newSeconds = hours * 3600 + minutes * 60 + seconds;
+                const newTimestamp = formatTime(newSeconds);
+                
+                timestampsData[editingTimestampIndex].seconds = newSeconds;
+                timestampsData[editingTimestampIndex].timestamp = newTimestamp;
+                
+                timestampsData.sort((a, b) => b.seconds - a.seconds);
+                
+                renderTimestampsList();
+                
+                editTimestampModal.style.display = 'none';
+            });
+            
+            cancelEdit.addEventListener('click', function() {
+                editTimestampModal.style.display = 'none';
+            });
+            
+            clearTimestampsBtn.addEventListener('click', function() {
+                if (timestampsData.length === 0) {
+                    return;
+                }
+                
+                showConfirmDialog(
+                    '清空所有时间',
+                    `确定要清空所有时间吗？这将删除 ${timestampsData.length} 个时间点位记录。`,
+                    function() {
+                        timestampsData = [];
+                        renderTimestampsList();
+                    }
+                );
+            });
+            
+            exportTimestampsBtn.addEventListener('click', function() {
+                showExportPreview();
+            });
+            
+            confirmYes.addEventListener('click', function() {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+                confirmModal.style.display = 'none';
+            });
+            
+            confirmNo.addEventListener('click', function() {
+                confirmModal.style.display = 'none';
+            });
+            
+            copyPreviewBtn.addEventListener('click', function() {
+                const contentToCopy = previewTextarea.value;
+                copyToClipboard(contentToCopy);
+                alert('内容已复制到剪贴板！');
+            });
+            
+            downloadPreviewBtn.addEventListener('click', function() {
+                const contentToDownload = previewTextarea.value;
+                const listTitle = listTitleInput.value.trim();
+                const exportTitle = listTitle || '时间点位列表';
+                const fileName = `${exportTitle}_${new Date().toISOString().slice(0, 10)}.txt`;
+                
+                downloadTextFile(contentToDownload, fileName);
+            });
+            
+            closePreviewBtn.addEventListener('click', function() {
+                exportPreviewModal.style.display = 'none';
+            });
+            
+            setupModalCloseHandlers();
+        }
+        
+        function getInputElement(unit) {
+            switch(unit) {
+                case 'hour': return hourValue;
+                case 'minute': return minuteValue;
+                case 'second': return secondValue;
+                case 'edit-hour': return editHourValue;
+                case 'edit-minute': return editMinuteValue;
+                case 'edit-second': return editSecondValue;
+            }
+        }
+        
+        function adjustInputTime(unit, change, inputElement) {
+            let maxValue;
+            
+            if (unit.includes('hour')) {
+                maxValue = 99;
+            } else {
+                maxValue = 59;
+            }
+            
+            let value = parseInt(inputElement.value) || 0;
+            value += change;
+            
+            if (value < 0) value = maxValue;
+            if (value > maxValue) value = 0;
+            
+            inputElement.value = value.toString().padStart(2, '0');
+        }
+        
+        function validateTimeInput(input) {
+            let value = parseInt(input.value) || 0;
+            let maxValue;
+            
+            if (input.id.includes('hour')) {
+                maxValue = 99;
+            } else {
+                maxValue = 59;
+            }
+            
+            if (value < 0) value = 0;
+            if (value > maxValue) value = maxValue;
+            
+            input.value = value.toString().padStart(2, '0');
+        }
+        
+        function formatTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function updateTimerDisplay() {
+            timerDisplay.textContent = formatTime(timerSeconds);
+        }
+        
+        function addTimestampToList(timestamp, seconds) {
+            timestampsData.unshift({
+                timestamp: timestamp,
+                seconds: seconds,
+                note: ''
+            });
+            
+            timestampsData.sort((a, b) => b.seconds - a.seconds);
+            
+            renderTimestampsList();
+        }
+        
+        function renderTimestampsList() {
+            timestampsList.innerHTML = '';
+            
+            if (timestampsData.length === 0) {
+                const emptyItem = document.createElement('div');
+                emptyItem.className = 'timestamp-item';
+                emptyItem.style.color = '#999';
+                emptyItem.style.fontStyle = 'italic';
+                emptyItem.textContent = '点击上方时间显示以添加时间...';
+                timestampsList.appendChild(emptyItem);
+                return;
+            }
+            
+            timestampsData.forEach((item, index) => {
+                const timestampItem = document.createElement('div');
+                timestampItem.className = 'timestamp-item';
+                timestampItem.dataset.index = index;
+                
+                const timestampSpan = document.createElement('span');
+                timestampSpan.className = 'timestamp-text';
+                timestampSpan.textContent = item.timestamp;                
+                
+                timestampSpan.addEventListener('click', function() {
+                    if (doubleClickTimer) {
+                        clearTimeout(doubleClickTimer);
+                        doubleClickTimer = null;
+                        
+                        editingTimestampIndex = index;
+                        
+                        const seconds = item.seconds;
+                        const hours = Math.floor(seconds / 3600);
+                        const minutes = Math.floor((seconds % 3600) / 60);
+                        const secs = Math.floor(seconds % 60);
+                        
+                        editHourValue.value = hours.toString().padStart(2, '0');
+                        editMinuteValue.value = minutes.toString().padStart(2, '0');
+                        editSecondValue.value = secs.toString().padStart(2, '0');
+                        
+                        editTimestampModal.style.display = 'flex';
+                    } else {
+                        doubleClickTimer = setTimeout(() => {
+                            doubleClickTimer = null;
+                        }, 300);
+                    }
+                });
+                
+                const quickSymbolsDiv = document.createElement('div');
+                quickSymbolsDiv.className = 'quick-symbols';
+                
+                const starBtn = document.createElement('button');
+                starBtn.className = 'symbol-btn';
+                starBtn.textContent = '⭐';
+                starBtn.addEventListener('click', function() {
+                    const noteInput = timestampItem.querySelector('.timestamp-note');
+                    noteInput.value = noteInput.value + '⭐';
+                    noteInput.focus();
+                    timestampsData[index].note = noteInput.value;
+                });
+                
+                const heartBtn = document.createElement('button');
+                heartBtn.className = 'symbol-btn';
+                heartBtn.textContent = '❤️';
+                heartBtn.addEventListener('click', function() {
+                    const noteInput = timestampItem.querySelector('.timestamp-note');
+                    noteInput.value = noteInput.value + '❤️';
+                    noteInput.focus();
+                    timestampsData[index].note = noteInput.value;
+                });
+                
+                const questionBtn = document.createElement('button');
+                questionBtn.className = 'symbol-btn';
+                questionBtn.textContent = '❓';
+                questionBtn.addEventListener('click', function() {
+                    const noteInput = timestampItem.querySelector('.timestamp-note');
+                    noteInput.value = noteInput.value + '❓';
+                    noteInput.focus();
+                    timestampsData[index].note = noteInput.value;
+                });
+                
+                quickSymbolsDiv.appendChild(starBtn);
+                quickSymbolsDiv.appendChild(heartBtn);
+                quickSymbolsDiv.appendChild(questionBtn);
+                
+                const noteInput = document.createElement('input');
+                noteInput.type = 'text';
+                noteInput.className = 'timestamp-note';
+                noteInput.placeholder = '备注';
+                noteInput.value = item.note;
+                
+                noteInput.addEventListener('input', function() {
+                    timestampsData[index].note = this.value;
+                });
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'timestamp-actions';
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = '复制';
+                copyBtn.addEventListener('click', function() {
+                    copyToClipboard(item.timestamp);
+                    currentTimeText.textContent = item.timestamp;
+                    currentTimeDisplay.style.display = 'flex';
+                    setTimeout(() => {
+                        currentTimeDisplay.style.display = 'none';
+                    }, 1000);
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '删除';
+                deleteBtn.addEventListener('click', function() {
+                    let deleteMessage = `确定要删除 "${item.timestamp}" 吗？`;
+                    if (item.note && item.note.trim() !== '') {
+                        deleteMessage += `\n备注: "${item.note}"`;
+                    }
+                    
+                    showConfirmDialog(
+                        '删除时间',
+                        deleteMessage,
+                        function() {
+                            timestampsData.splice(index, 1);
+                            renderTimestampsList();
+                        }
+                    );
+                });
+                
+                actionsDiv.appendChild(copyBtn);
+                actionsDiv.appendChild(deleteBtn);
+                
+                timestampItem.appendChild(timestampSpan);
+                timestampItem.appendChild(quickSymbolsDiv);
+                timestampItem.appendChild(noteInput);
+                timestampItem.appendChild(actionsDiv);
+                
+                timestampsList.appendChild(timestampItem);
+            });
+        }
+        
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+            document.body.removeChild(textarea);
+        }
+        
+        function generateExportContent() {
+            if (timestampsData.length === 0) {
+                return '';
+            }
+            
+            const sortedData = [...timestampsData].sort((a, b) => a.seconds - b.seconds);
+            
+            const listTitle = listTitleInput.value.trim();
+            const exportTitle = listTitle || '时间点位列表';
+            
+            let exportContent = `${exportTitle}:\n\n`;
+            
+            sortedData.forEach(item => {
+                const timestampText = item.timestamp;
+                const noteText = item.note;
+                
+                exportContent += `${timestampText} ${noteText ? '- ' + noteText : ''}\n`;
+            });
+            
+            exportContent += `\n---\n总计: ${sortedData.length} 个时间点`;
+            
+            return exportContent;
+        }
+        
+        function showExportPreview() {
+            if (timestampsData.length === 0) {
+                return;
+            }
+            
+            const currentExportContent = generateExportContent();
+            
+            previewTextarea.value = currentExportContent;
+            
+            exportPreviewModal.style.display = 'flex';
+        }
+        
+        function downloadTextFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function showConfirmDialog(title, message, callback) {
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            confirmMessage.style.whiteSpace = 'pre-line';
+            confirmCallback = callback;
+            confirmModal.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
