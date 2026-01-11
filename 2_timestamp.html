@@ -1036,6 +1036,23 @@
             renderTimestampsList();
         }
         
+        function insertAtCursor(inputElement, text) {
+            const startPos = inputElement.selectionStart;
+            const endPos = inputElement.selectionEnd;
+            const currentValue = inputElement.value;
+            
+            const newValue = currentValue.substring(0, startPos) + 
+                             text + 
+                             currentValue.substring(endPos, currentValue.length);
+            
+            inputElement.value = newValue;
+            
+            const newCursorPos = startPos + text.length;
+            inputElement.setSelectionRange(newCursorPos, newCursorPos);
+            
+            inputElement.dispatchEvent(new Event('input'));
+        }
+        
         function renderTimestampsList() {
             timestampsList.innerHTML = '';
             
@@ -1090,7 +1107,7 @@
                 starBtn.textContent = '⭐';
                 starBtn.addEventListener('click', function() {
                     const noteInput = timestampItem.querySelector('.timestamp-note');
-                    noteInput.value = noteInput.value + '⭐';
+                    insertAtCursor(noteInput, '⭐');
                     noteInput.focus();
                     timestampsData[index].note = noteInput.value;
                 });
@@ -1100,7 +1117,7 @@
                 heartBtn.textContent = '❤️';
                 heartBtn.addEventListener('click', function() {
                     const noteInput = timestampItem.querySelector('.timestamp-note');
-                    noteInput.value = noteInput.value + '❤️';
+                    insertAtCursor(noteInput, '❤️');
                     noteInput.focus();
                     timestampsData[index].note = noteInput.value;
                 });
@@ -1110,7 +1127,7 @@
                 questionBtn.textContent = '❓';
                 questionBtn.addEventListener('click', function() {
                     const noteInput = timestampItem.querySelector('.timestamp-note');
-                    noteInput.value = noteInput.value + '❓';
+                    insertAtCursor(noteInput, '❓');
                     noteInput.focus();
                     timestampsData[index].note = noteInput.value;
                 });
