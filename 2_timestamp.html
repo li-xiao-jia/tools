@@ -613,8 +613,6 @@
         let currentSpeed = 1.0;
         const speeds = [1.0, 1.5, 2.0, 3.0];
         let speedIndex = 0;
-        let timerBaseTime = 0;
-        let timerBaseSeconds = 0;
         let timestampsData = [];
         let editingTimestampIndex = -1;
         let longPressInterval;
@@ -623,6 +621,7 @@
         let confirmCallback = null;
         let doubleClickTimer = null;
         let wakeLock = null;
+        let lastTime = 0; // 用于增量计时
 
         initEventListeners();
         renderTimestampsList();
@@ -635,20 +634,23 @@
             }
         });
 
+        // 使用增量计时逻辑（与视频播放器相同）
         function startTimer() {
             if (!isTimerRunning) {
                 isTimerRunning = true;
-                timerBaseTime = performance.now();
-                timerBaseSeconds = timerSeconds;
+                lastTime = Date.now();
+                
                 timerInterval = setInterval(() => {
-                    const currentTime = performance.now();
-                    const elapsed = (currentTime - timerBaseTime) / 1000;
-                    timerSeconds = timerBaseSeconds + (elapsed * currentSpeed);
-                    timerSeconds = Math.round(timerSeconds * 1000) / 1000;
+                    const now = Date.now();
+                    const delta = (now - lastTime) / 1000;
+                    timerSeconds += delta * currentSpeed;
+                    lastTime = now;
                     updateTimerDisplay();
                 }, 16);
+                
                 startTimerBtn.textContent = '暂停';
                 startTimerBtn.classList.add('btn-pause');
+                
                 if ('wakeLock' in navigator) {
                     requestWakeLock();
                 }
@@ -661,6 +663,7 @@
                 clearInterval(timerInterval);
                 startTimerBtn.textContent = '继续';
                 startTimerBtn.classList.remove('btn-pause');
+                
                 if (wakeLock) {
                     releaseWakeLock();
                 }
@@ -828,6 +831,8 @@
                 speedIndex = (speedIndex + 1) % speeds.length;
                 currentSpeed = speeds[speedIndex];
                 speedBtn.textContent = `${currentSpeed}X`;
+                
+                // 速度改变时重新开始计时器以应用新速度
                 if (isTimerRunning) {
                     pauseTimer();
                     startTimer();
@@ -872,12 +877,11 @@
                 timerSeconds = hours * 3600 + minutes * 60 + seconds;
                 updateTimerDisplay();
                 timeModal.style.display = 'none';
+                
+                // 如果计时器正在运行，需要重新设置基准
                 if (isTimerRunning) {
-                    timerBaseTime = performance.now();
-                    timerBaseSeconds = timerSeconds;
-                } else {
-                    startTimerBtn.textContent = '开始计时';
-                    startTimerBtn.classList.remove('btn-pause');
+                    pauseTimer();
+                    startTimer();
                 }
                 updateExportButtonState();
             });
