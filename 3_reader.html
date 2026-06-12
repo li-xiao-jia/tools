@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="励小加">
+    <meta name="copyright" content="© 2026 励小加. 保留所有权利。">
+    <title>消息朗读助手</title>
+    <style>
+        :root {
+            --font-size: 20px;
+            --letter-spacing: 0.5px;
+            --line-height: 1.8;
+            --paragraph-spacing: 16px;
+            --text-color: #1e1e1e;
+            --bg-color: #fdfbf7;
+            --card-bg: #ffffff;
+            --border-color: #d5cfc6;
+            --accent: #4a7c6b;
+            --accent-light: #e8f4ef;
+            --accent-warm: #f0c040;
+            --danger: #b84040;
+            --danger-light: #fef0f0;
+            --shadow: 0 2px 10px rgba(0,0,0,0.06);
+            --shadow-lg: 0 4px 22px rgba(0,0,0,0.10);
+            --radius: 10px;
+            --settings-font-size: 15px;
+            --highlight-bg: #fff3cd;
+        }
+
+        .theme-classic { --bg-color: #fdfbf7; --card-bg: #ffffff; --text-color: #1e1e1e; --border-color: #d5cfc6; --accent: #4a7c6b; --accent-light: #e8f4ef; --highlight-bg: #fff3cd; }
+        .theme-warm { --bg-color: #fdf5e6; --card-bg: #fffaf0; --text-color: #4a3a2a; --border-color: #d5c4a1; --accent: #8b6b4a; --accent-light: #f0e4d0; --highlight-bg: #f0e0c0; }
+        .theme-dark { --bg-color: #2a2a2a; --card-bg: #333333; --text-color: #e0e0e0; --border-color: #555555; --accent: #7ba4a0; --accent-light: #3a4a4a; --highlight-bg: #5a5a30; }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+            background: var(--bg-color); color: var(--text-color); font-size: 17px;
+            min-height: 100vh; display: flex; justify-content: center; letter-spacing: 0.4px;
+            transition: background 0.3s, color 0.3s;
+        }
+        .app-container { display: flex; width: 100%; max-width: 1450px; min-height: 100vh; }
+        .main-area {
+            flex:1; display: flex; flex-direction: column; padding: 18px 22px 60px; min-width:0;
+            transition: margin-right 0.3s ease;
+        }
+        .main-area.expanded { margin-right: 0; }
+        .toolbar {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px;
+            background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+            margin-bottom: 14px; position: sticky; top: 12px; z-index: 50; border: 1px solid var(--border-color);
+        }
+        .btn {
+            display: inline-flex; align-items: center; gap:6px; padding:10px 18px; border-radius:24px;
+            cursor:pointer; font-size:15px; font-weight:600; letter-spacing:0.5px; transition:0.2s;
+            white-space:nowrap; border:2px solid transparent; background:var(--card-bg); color:var(--text-color); font-family:inherit;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-play { background:var(--accent); color:#fff; font-size:16px; padding:12px 24px; box-shadow:0 3px 12px rgba(0,0,0,0.2); border-color:transparent; }
+        .btn-play.playing { background:#e07b20; animation: pulse 1.5s infinite; }
+        .btn-play.paused { background:#8a7a5e; }
+        @keyframes pulse { 50% { box-shadow:0 6px 24px rgba(224,123,32,0.55); } }
+        .btn-stop { border-color:var(--border-color); }
+        .btn-tool { border-color:var(--border-color); font-size:14px; padding:8px 14px; }
+        .btn-tool.danger { color:var(--danger); border-color:#ecc; }
+        .btn-toggle-settings { border-color:var(--border-color); font-size:14px; padding:8px 14px; white-space:nowrap; }
+        .status-badge {
+            font-size:14px; color:var(--text-color); padding:7px 14px; background:var(--card-bg);
+            border-radius:20px; font-weight:500; opacity:0.8; flex-basis: 100%; order: 1;
+        }
+        .status-badge.active { background:#fff8dd; color:#7a6200; font-weight:700; }
+        .message-list { flex:1; display: flex; flex-direction: column; gap: var(--paragraph-spacing); }
+        .msg-card {
+            background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow);
+            border:2px solid transparent; transition:0.2s; overflow:hidden;
+        }
+        .msg-card.reading { border-color:var(--accent-warm) !important; box-shadow:0 0 0 7px rgba(240,192,64,0.18), var(--shadow-lg); }
+        .msg-card.drag-over-card { border-color:var(--accent) !important; background:var(--accent-light) !important; }
+        .msg-card.collapsed .msg-body { display: none; }
+        .msg-card.collapsed .msg-preview { display: block; }
+        .msg-preview { display: none; padding: 10px 16px; color: var(--text-color); opacity: 0.6; font-style: italic; }
+        .msg-header {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            background: var(--card-bg); border-bottom: 1px solid var(--border-color); flex-wrap: wrap;
+        }
+        .msg-number {
+            background: var(--accent-light); color: var(--accent); border-radius: 18px; padding: 0 14px;
+            font-weight: 700; cursor: pointer; transition: 0.2s; border: 2px solid transparent; line-height: 32px;
+        }
+        .msg-card.reading .msg-number { background: var(--accent-warm); color: #5c3d00; }
+        .sentence-indicator {
+            padding: 4px 16px 8px; font-size: 15px; color: #b45f06; background: #fff8e7;
+            border-bottom: 1px solid #ffe0a3; font-weight: 500; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; display: none;
+        }
+        .msg-card.reading .sentence-indicator { display: block; }
+        .msg-btn {
+            padding: 6px 12px; border-radius: 16px; border: 2px solid var(--border-color);
+            background: var(--card-bg); cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: 0.2s; color: var(--text-color);
+        }
+        .msg-btn:hover { background: var(--accent-light); }
+        .msg-btn.delete-msg-btn { color: var(--danger); border-color: #f0d0d0; margin-left: auto; }
+        .msg-btn.play-msg-btn.playing { background: #e07b20; color: #fff; border-color: #e07b20; }
+        .msg-btn.play-msg-btn.paused { background: #8a7a5e; color: #fff; border-color: #8a7a5e; }
+        .msg-body {
+            padding: 12px 16px; max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        .msg-body .highlight-overlay {
+            position: absolute; top: 12px; left: 16px; right: 16px; pointer-events: none;
+            white-space: pre-wrap; word-wrap: break-word; font-size: var(--font-size);
+            font-family: inherit; letter-spacing: var(--letter-spacing);
+            line-height: var(--line-height); color: transparent;
+        }
+        .highlight-overlay mark {
+            background: var(--highlight-bg); color: transparent; border-radius: 4px;
+        }
+        .msg-body textarea {
+            width: 100%; border: none; background: transparent; font-size: var(--font-size);
+            font-family: inherit; color: var(--text-color); letter-spacing: var(--letter-spacing);
+            line-height: var(--line-height); resize: none; outline: none; min-height: 50px;
+            field-sizing: content; border-radius: 6px; position: relative; z-index: 1;
+        }
+        .first-empty .msg-body textarea { min-height: 120px; }
+        .msg-body textarea[readonly] { cursor: not-allowed; opacity: 0.8; }
+        .btn-add-new {
+            display: flex; align-items: center; justify-content: center; gap:6px; padding:14px 20px;
+            background:var(--card-bg); border:3px dashed var(--border-color); border-radius:var(--radius);
+            cursor:pointer; font-size:15px; font-weight:600; color:var(--text-color);
+            margin-top:12px; transition:0.2s; opacity:0.8; text-align:center;
+        }
+        .btn-add-new:hover { border-color:var(--accent); opacity:1; }
+        .settings-panel {
+            width: 320px; flex-shrink: 0; background: var(--card-bg); border-left: 1px solid var(--border-color);
+            padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
+            position: sticky; top: 0; z-index: 40; height: 100vh; transition: all 0.3s ease;
+            font-size: var(--settings-font-size);
+        }
+        .settings-panel.collapsed { width: 0; min-width: 0; padding: 0; overflow: hidden; border-left: none; }
+        .settings-content { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; }
+        .setting-group { display: flex; flex-direction: column; gap: 4px; }
+        .setting-group label { font-size: var(--settings-font-size); font-weight: 700; color: var(--text-color); opacity: 0.8; }
+        .setting-group select {
+            padding: 9px 10px; border-radius: 8px; border: 2px solid var(--border-color);
+            font-size: var(--settings-font-size); background: var(--card-bg); color: var(--text-color); width: 100%;
+        }
+        .voice-group { flex: 1; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+        .voice-group select { flex: 1; min-height: 0; font-size: var(--settings-font-size); }
+        .voice-search { padding: 7px 10px; border-radius: 8px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-size: var(--settings-font-size); }
+        .theme-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+        .theme-btn {
+            padding: 8px 12px; border-radius: 20px; border: 2px solid var(--border-color);
+            background: var(--card-bg); cursor: pointer; font-size: var(--settings-font-size); font-weight: 600;
+            transition: 0.2s; color: var(--text-color);
+        }
+        .theme-btn.active { border-color: var(--accent); background: var(--accent-light); }
+        .btn-reset-settings { padding: 9px 16px; border-radius: 20px; border: 2px solid var(--border-color); background: var(--card-bg); cursor: pointer; font-size: var(--settings-font-size); color: var(--text-color); font-weight: 600; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .toggle-row .toggle-label { font-size: var(--settings-font-size); font-weight: 700; color: var(--text-color); opacity: 0.8; flex: 1; }
+        .toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 26px; transition: 0.3s; }
+        .toggle-slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .toggle-switch input:checked+.toggle-slider { background: var(--accent); }
+        .toggle-switch input:checked+.toggle-slider::before { transform: translateX(22px); }
+
+        .modal-overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4);
+            z-index: 300; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: var(--card-bg); border-radius: var(--radius); padding: 24px;
+            max-width: 360px; width: 90%; box-shadow: var(--shadow-lg); text-align: center;
+        }
+        .modal-box p { margin-bottom: 20px; font-size: 16px; font-weight: 500; color: var(--text-color); white-space: pre-line; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+        .modal-buttons .btn { min-width: 80px; }
+
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #3a3a3a; color: #fff; padding: 13px 26px; border-radius: 28px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 200; }
+        .toast.show { opacity: 1; }
+        @media (max-width: 900px) {
+            .app-container { flex-direction: column; }
+            .settings-panel { width: 100%; height: auto; position: relative; }
+            .settings-panel.collapsed { width: 100%; height: 0; padding: 0; }
+            .main-area.expanded { margin-right: 0; }
+        }
+    </style>
+</head>
+<body class="theme-classic">
+<div class="app-container">
+    <main class="main-area" id="mainArea">
+        <div class="toolbar">
+            <button class="btn btn-play" id="btnPlay">开始朗读</button>
+            <button class="btn btn-stop" id="btnStop">停止</button>
+            <span class="status-badge" id="statusBadge">就绪 · 共 <strong id="msgCount">1</strong> 条</span>
+            <button class="btn btn-tool" id="btnAddTop" style="color: #1a73e8;">新增信息</button>
+            <button class="btn btn-tool" id="btnCollapseAll">全部折叠</button>
+            <button class="btn btn-tool" id="btnExpandAll">全部展开</button>
+            <button class="btn btn-tool danger" id="btnClearAll">清空全部</button>
+            <button class="btn btn-toggle-settings" id="btnToggleSettings">折叠设置</button>
+        </div>
+        <div class="message-list" id="messageList"></div>
+        <button class="btn-add-new" id="btnAddNew">点击此处或拖入空白处，可新增消息，支持拖入文本，一个或多个.txt .md文件</button>
+    </main>
+    <aside class="settings-panel" id="settingsPanel">
+        <div class="settings-content">
+            <span style="font-weight:700;text-align:center;color:var(--text-color);font-size:var(--settings-font-size);">显示与朗读设置</span>
+            <div class="setting-group"><label>配色方案</label>
+                <div class="theme-row" id="themeRow">
+                    <button class="theme-btn active" data-theme="classic">经典白</button>
+                    <button class="theme-btn" data-theme="warm">暖黄</button>
+                    <button class="theme-btn" data-theme="dark">深邃灰</button>
+                </div>
+            </div>
+            <div class="setting-group"><label>字体大小</label><input type="range" id="fontSize" min="14" max="52" value="20"><span id="fontSizeVal">20px</span></div>
+            <div class="setting-group"><label>字间距</label><input type="range" id="letterSpacing" min="-2" max="14" value="0.5" step="0.5"><span id="letterSpacingVal">0.5px</span></div>
+            <div class="setting-group"><label>行间距</label><input type="range" id="lineHeight" min="1.2" max="3.8" value="1.8" step="0.05"><span id="lineHeightVal">1.8</span></div>
+            <div class="setting-group"><label>消息间距</label><input type="range" id="paragraphSpacing" min="4" max="44" value="16"><span id="paragraphSpacingVal">16px</span></div>
+            <button class="btn-reset-settings" id="btnResetFont">恢复字体设置</button>
+            <hr>
+            <div class="setting-group"><label>朗读语速</label><input type="range" id="speechRate" min="0.4" max="5.0" value="1.2" step="0.05"><span id="speechRateVal">1.2x</span></div>
+            <div class="toggle-row">
+                <span class="toggle-label">播报"开始朗读第几条"</span>
+                <label class="toggle-switch"><input type="checkbox" id="announcePrefix" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+                <span class="toggle-label">【朗读结束】播报提示</span>
+                <label class="toggle-switch"><input type="checkbox" id="announceEnd" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-group"><label>搜索语音</label><input type="text" class="voice-search" id="voiceSearch" placeholder="输入关键词过滤"></div>
+            <div class="voice-group setting-group"><label>朗读语音</label><select id="voiceSelect" size="6"></select></div>
+            <button class="btn-reset-settings" id="btnResetVoice">恢复语音设置</button>
+            <p style="font-size:11px;color:var(--text-color);opacity:0.6;text-align:center;">空格暂停/继续 · Esc停止</p>
+        </div>
+    </aside>
+</div>
+
+<div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <p id="modalMessage">是否把拖入内容替换原有文本</p>
+        <div class="modal-buttons">
+            <button class="btn" id="modalReplace">替换</button>
+            <button class="btn btn-play" id="modalCreate">新建一条</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+    (function() {
+        const $ = id => document.getElementById(id);
+        const btnPlay = $('btnPlay'), btnStop = $('btnStop'), statusBadge = $('statusBadge');
+        const msgCountEl = $('msgCount'), messageList = $('messageList'), btnAddNew = $('btnAddNew');
+        const toast = $('toast'), mainArea = $('mainArea');
+        const fontSizeInput = $('fontSize'), fontSizeVal = $('fontSizeVal');
+        const letterSpacingInput = $('letterSpacing'), letterSpacingVal = $('letterSpacingVal');
+        const lineHeightInput = $('lineHeight'), lineHeightVal = $('lineHeightVal');
+        const paragraphSpacingInput = $('paragraphSpacing'), paragraphSpacingVal = $('paragraphSpacingVal');
+        const speechRateInput = $('speechRate'), speechRateVal = $('speechRateVal');
+        const voiceSelect = $('voiceSelect'), voiceSearch = $('voiceSearch');
+        const btnResetFont = $('btnResetFont'), btnResetVoice = $('btnResetVoice');
+        const announcePrefixToggle = $('announcePrefix');
+        const announceEndToggle = $('announceEnd');
+        const btnToggleSettings = $('btnToggleSettings');
+        const settingsPanel = $('settingsPanel');
+        const modalOverlay = $('modalOverlay');
+        const modalMessage = $('modalMessage');
+        const modalReplace = $('modalReplace');
+        const modalCreate = $('modalCreate');
+        const btnAddTop = $('btnAddTop');
+
+        let messages = [], msgId = 0;
+        let isReading = false, isPaused = false;
+        let readingQueue = [], queuePos = 0;
+        let currentMsgIndex = -1, currentSentenceText = '', currentSentenceStart = 0;
+        let isSingleMode = false;
+        let availableVoices = [], allVoiceOptions = [];
+        let retryCount = 0;
+        let settingsCollapsed = false;
+        let pendingDropData = null;
+
+        const displayDefaults = { fontSize: 20, letterSpacing: 0.5, lineHeight: 1.8, paragraphSpacing: 16 };
+        const voiceDefaults = { speechRate: 1.2, voiceURI: '', announcePrefix: true, announceEnd: true };
+        const defaultTheme = 'classic';
+        let settings = { ...displayDefaults, ...voiceDefaults, theme: defaultTheme };
+
+        function saveAll() {
+            try {
+                localStorage.setItem('msgReader_settings', JSON.stringify(settings));
+                localStorage.setItem('msgReader_messages', JSON.stringify({ messages, msgId }));
+            } catch (e) {}
+        }
+
+        function loadAll() {
+            try {
+                const savedSettings = localStorage.getItem('msgReader_settings');
+                if (savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
+                const savedData = localStorage.getItem('msgReader_messages');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    messages = data.messages || [];
+                    msgId = data.msgId || 0;
+                }
+            } catch (e) {}
+            if (settings.announcePrefix === undefined) settings.announcePrefix = true;
+            if (settings.announceEnd === undefined) settings.announceEnd = true;
+        }
+
+        function applyCSS() {
+            const root = document.documentElement;
+            root.style.setProperty('--font-size', settings.fontSize + 'px');
+            root.style.setProperty('--letter-spacing', settings.letterSpacing + 'px');
+            root.style.setProperty('--line-height', settings.lineHeight);
+            root.style.setProperty('--paragraph-spacing', settings.paragraphSpacing + 'px');
+            root.style.setProperty('--settings-font-size', '15px');
+            messageList.style.gap = settings.paragraphSpacing + 'px';
+            document.querySelectorAll('.msg-body textarea').forEach(ta => {
+                ta.style.fontSize = settings.fontSize + 'px';
+                ta.style.letterSpacing = settings.letterSpacing + 'px';
+                ta.style.lineHeight = settings.lineHeight;
+            });
+            document.body.className = 'theme-' + (settings.theme || defaultTheme);
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === settings.theme));
+        }
+
+        function autoResize(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+
+        function syncUI() {
+            fontSizeInput.value = settings.fontSize; fontSizeVal.textContent = settings.fontSize + 'px';
+            letterSpacingInput.value = settings.letterSpacing; letterSpacingVal.textContent = settings.letterSpacing + 'px';
+            lineHeightInput.value = settings.lineHeight; lineHeightVal.textContent = settings.lineHeight.toFixed(2);
+            paragraphSpacingInput.value = settings.paragraphSpacing; paragraphSpacingVal.textContent = settings.paragraphSpacing + 'px';
+            speechRateInput.value = settings.speechRate; speechRateVal.textContent = settings.speechRate.toFixed(1) + 'x';
+            if (voiceSelect.value !== settings.voiceURI && settings.voiceURI) voiceSelect.value = settings.voiceURI;
+            announcePrefixToggle.checked = settings.announcePrefix;
+            announceEndToggle.checked = settings.announceEnd;
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg; toast.classList.add('show');
+            clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function createMessage(content = '') { messages.push({ id: ++msgId, content, collapsed: false }); renderAll(); updateStatus(); saveAll(); scrollToLastMessage(); }
+        function deleteMsg(id) {
+            if (isReading && currentMsgIndex === messages.findIndex(m => m.id === id)) {
+                stopReading();
+                showToast('已停止朗读，消息已删除');
+            }
+            messages = messages.filter(m => m.id !== id);
+            if (isReading || isPaused) rebuildQueue();
+            renderAll(); updateStatus(); saveAll();
+        }
+        function toggleCollapse(id) {
+            const m = messages.find(m => m.id === id);
+            if (m) { m.collapsed = !m.collapsed; renderAll(); updateStatus(); saveAll(); }
+        }
+        function collapseAll() { messages.forEach(m => m.collapsed = true); renderAll(); updateStatus(); saveAll(); }
+        function expandAll() { messages.forEach(m => m.collapsed = false); renderAll(); updateStatus(); saveAll(); }
+        function rebuildQueue() {
+            readingQueue = buildQueue();
+            if (queuePos >= readingQueue.length) queuePos = 0;
+            if (!readingQueue.length && (isReading || isPaused)) stopReading();
+        }
+
+        function scrollToLastMessage() {
+            setTimeout(() => {
+                const cards = messageList.querySelectorAll('.msg-card');
+                if (cards.length > 0) {
+                    cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 150);
+        }
+
+        function renderAll() {
+            messageList.innerHTML = messages.map((m, i) => {
+                const preview = (m.content || '(空)').replace(/\n/g, ' ').substring(0, 80);
+                const isCurrent = currentMsgIndex === i;
+                let playBtnClass = 'msg-btn play-msg-btn';
+                if (isCurrent && isReading) playBtnClass += isPaused ? ' paused' : ' playing';
+                const readonlyAttr = (isCurrent && isReading && !isPaused) ? ' readonly' : '';
+                const isEmptyFirst = (i === 0 && messages.length === 1 && !m.content);
+                return `<div class="msg-card${m.collapsed?' collapsed':''}${isCurrent?' reading':''}${isEmptyFirst?' first-empty':''}" data-id="${m.id}" data-index="${i}">
+                    <div class="msg-header">
+                        <span class="msg-number" data-toggle="${m.id}">第${i+1}条</span>
+                        <button class="msg-btn" data-toggle="${m.id}">${m.collapsed?'展开':'折叠'}</button>
+                        <button class="${playBtnClass}" data-play="${i}">${(isCurrent && isReading) ? (isPaused ? '继续朗读' : '暂停朗读') : '朗读本条'}</button>
+                        <button class="msg-btn delete-msg-btn" data-delete="${m.id}">删除</button>
+                    </div>
+                    <div class="sentence-indicator">🔊 ${escapeHtml(currentSentenceText)}</div>
+                    <div class="msg-preview">${escapeHtml(preview)}</div>
+                    <div class="msg-body"><textarea data-id="${m.id}"${readonlyAttr}>${escapeHtml(m.content)}</textarea></div>
+                </div>`;
+            }).join('');
+            bindAllEvents();
+            applyCSS();
+            updateReadingHighlight();
+            setTimeout(() => document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)), 10);
+        }
+
+        function updateReadingUI() {
+            document.querySelectorAll('.msg-card').forEach(card => {
+                const idx = parseInt(card.dataset.index);
+                const isCurrent = idx === currentMsgIndex;
+                card.classList.toggle('reading', isCurrent && isReading);
+                const playBtn = card.querySelector('.play-msg-btn');
+                if (playBtn) {
+                    if (isCurrent && isReading) {
+                        playBtn.classList.add(isPaused ? 'paused' : 'playing');
+                        playBtn.textContent = isPaused ? '继续朗读' : '暂停朗读';
+                    } else {
+                        playBtn.classList.remove('playing', 'paused');
+                        playBtn.textContent = '朗读本条';
+                    }
+                }
+                const ta = card.querySelector('textarea');
+                if (ta) {
+                    if (isCurrent && isReading && !isPaused) ta.setAttribute('readonly', '');
+                    else ta.removeAttribute('readonly');
+                }
+            });
+            document.querySelectorAll('.sentence-indicator').forEach(ind => {
+                const card = ind.closest('.msg-card');
+                const idx = parseInt(card.dataset.index);
+                ind.textContent = '🔊 ' + (idx === currentMsgIndex ? currentSentenceText : '');
+            });
+            updateReadingHighlight();
+        }
+
+        function updateReadingHighlight() {
+            document.querySelectorAll('.highlight-overlay').forEach(el => el.remove());
+            if (currentMsgIndex < 0 || !currentSentenceText) return;
+            const card = document.querySelector(`.msg-card[data-index="${currentMsgIndex}"]`);
+            if (!card) return;
+            const ta = card.querySelector('textarea');
+            if (!ta) return;
+            const fullText = ta.value;
+            let start = currentSentenceStart;
+            if (start < 0 || start >= fullText.length || fullText.substring(start, start + currentSentenceText.length) !== currentSentenceText) {
+                start = fullText.indexOf(currentSentenceText);
+            }
+            if (start === -1) return;
+            const before = escapeHtml(fullText.substring(0, start));
+            const match = escapeHtml(currentSentenceText);
+            const after = escapeHtml(fullText.substring(start + currentSentenceText.length));
+            const body = card.querySelector('.msg-body');
+            const overlay = document.createElement('div');
+            overlay.className = 'highlight-overlay';
+            overlay.style.fontSize = settings.fontSize + 'px';
+            overlay.style.letterSpacing = settings.letterSpacing + 'px';
+            overlay.style.lineHeight = settings.lineHeight;
+            overlay.innerHTML = before + `<mark>${match}</mark>` + after;
+            body.appendChild(overlay);
+        }
+
+        function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function bindAllEvents() {
+            document.querySelectorAll('[data-toggle]').forEach(el => el.onclick = e => { e.stopPropagation(); toggleCollapse(+el.dataset.toggle); });
+            document.querySelectorAll('[data-play]').forEach(el => el.onclick = e => {
+                e.stopPropagation();
+                const idx = parseInt(el.dataset.play);
+                if (currentMsgIndex === idx && isReading) {
+                    isPaused ? resumeReading() : pauseReading();
+                } else {
+                    playSingle(idx);
+                }
+            });
+            document.querySelectorAll('[data-delete]').forEach(el => el.onclick = e => { e.stopPropagation(); deleteMsg(+el.dataset.delete); });
+            document.querySelectorAll('.msg-body textarea').forEach(ta => {
+                ta.oninput = () => { const m = messages.find(m => m.id === +ta.dataset.id); if (m) { m.content = ta.value; saveAll(); } autoResize(ta); };
+                autoResize(ta);
+            });
+            document.querySelectorAll('.msg-card').forEach(card => {
+                card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over-card'); });
+                card.addEventListener('dragleave', () => card.classList.remove('drag-over-card'));
+                card.addEventListener('drop', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    card.classList.remove('drag-over-card');
+                    const targetId = parseInt(card.dataset.id);
+                    const targetMsg = messages.find(m => m.id === targetId);
+                    const files = e.dataTransfer.files;
+                    const text = getDropText(e);
+                    if (files && files.length > 0) {
+                        if (files.length > 1) {
+                            Array.from(files).forEach(file => {
+                                readFile(file, content => { createMessage(content); });
+                            });
+                            renderAll(); updateStatus();
+                            showToast(`已新增 ${files.length} 条消息`);
+                        } else {
+                            readFile(files[0], content => {
+                                if (targetMsg && !targetMsg.content.trim()) {
+                                    updateMsg(targetId, content);
+                                    renderAll();
+                                    showToast('消息已直接填入');
+                                    saveAll();
+                                } else {
+                                    showDropModal(targetId, content);
+                                }
+                            });
+                        }
+                    } else if (text) {
+                        if (targetMsg && !targetMsg.content.trim()) {
+                            updateMsg(targetId, text);
+                            renderAll();
+                            showToast('消息已直接填入');
+                            saveAll();
+                        } else {
+                            showDropModal(targetId, text);
+                        }
+                    }
+                });
+            });
+        }
+
+        function showDropModal(cardId, content) {
+            if (isReading && !isPaused && currentMsgIndex === messages.findIndex(m => m.id === cardId)) {
+                showToast('请先暂停再编辑正在朗读的消息');
+                return;
+            }
+            pendingDropData = { cardId, content };
+            const idx = messages.findIndex(m => m.id === cardId);
+            modalMessage.textContent = '是否把拖入内容替换 第' + (idx + 1) + '条 的原有文本';
+            modalOverlay.style.display = 'flex';
+        }
+
+        modalReplace.onclick = () => {
+            if (pendingDropData) {
+                updateMsg(pendingDropData.cardId, pendingDropData.content);
+                renderAll();
+                showToast('消息已替换');
+                saveAll();
+            }
+            closeModal();
+        };
+        modalCreate.onclick = () => {
+            if (pendingDropData) {
+                createMessage(pendingDropData.content);
+                showToast('已新建一条消息');
+            }
+            closeModal();
+        };
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+            pendingDropData = null;
+        }
+
+        function updateStatus() {
+            msgCountEl.textContent = messages.length;
+            let text = '就绪 · 共 ' + messages.length + ' 条';
+            if (isReading && !isPaused && currentMsgIndex >= 0) text = `正在朗读第${currentMsgIndex+1}条 · 共${messages.length}条`;
+            else if (isPaused) text = `已暂停 · 共${messages.length}条`;
+            statusBadge.innerHTML = text.replace(/(\d+)/g, '<strong>$1</strong>');
+            statusBadge.classList.toggle('active', isReading || isPaused);
+        }
+        function updatePlayBtn() {
+            if (isReading && !isPaused) { btnPlay.textContent = '暂停朗读'; btnPlay.className = 'btn btn-play playing'; }
+            else if (isPaused) { btnPlay.textContent = '继续朗读'; btnPlay.className = 'btn btn-play paused'; }
+            else { btnPlay.textContent = '开始朗读'; btnPlay.className = 'btn btn-play'; }
+        }
+
+        function getDropText(e) {
+            let text = e.dataTransfer.getData('text/plain');
+            if (!text?.trim()) { const h = e.dataTransfer.getData('text/html'); if (h) { const d = document.createElement('div'); d.innerHTML = h; text = d.textContent; } }
+            return text?.trim() || null;
+        }
+        function readFile(file, cb) {
+            if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.csv')) {
+                const r = new FileReader(); r.onload = () => cb(r.result); r.readAsText(file, 'UTF-8');
+            } else showToast('仅支持文本文件');
+        }
+        function updateMsg(id, content) { const m = messages.find(m => m.id === id); if (m) m.content = content; }
+
+        mainArea.addEventListener('dragover', e => { e.preventDefault(); if (!e.target.closest('.msg-card')) { btnAddNew.classList.add('drag-over'); } });
+        mainArea.addEventListener('dragleave', () => { btnAddNew.classList.remove('drag-over'); });
+        mainArea.addEventListener('drop', e => {
+            btnAddNew.classList.remove('drag-over');
+            if (e.target.closest('.msg-card')) return;
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                Array.from(files).forEach(file => {
+                    readFile(file, content => { createMessage(content); });
+                });
+                renderAll(); updateStatus();
+                showToast(`已新增 ${files.length} 条消息`);
+            } else {
+                const text = getDropText(e);
+                if (text) { createMessage(text); renderAll(); updateStatus(); showToast('已新增消息'); }
+            }
+        });
+
+        btnAddNew.onclick = () => { createMessage(''); renderAll(); updateStatus(); };
+        btnAddTop.onclick = () => { createMessage(''); renderAll(); updateStatus(); };
+        $('btnCollapseAll').onclick = collapseAll;
+        $('btnExpandAll').onclick = expandAll;
+        $('btnClearAll').onclick = () => {
+            if (confirm('清空全部？')) {
+                stopReading();
+                messages = [];
+                msgId = 0;
+                createMessage('');
+                saveAll();
+                renderAll();
+                updateStatus();
+                updatePlayBtn();
+                showToast('已清空并停止朗读');
+            }
+        };
+
+        btnToggleSettings.addEventListener('click', () => {
+            settingsCollapsed = !settingsCollapsed;
+            settingsPanel.classList.toggle('collapsed', settingsCollapsed);
+            mainArea.classList.toggle('expanded', settingsCollapsed);
+            btnToggleSettings.textContent = settingsCollapsed ? '展开设置' : '折叠设置';
+        });
+
+        async function loadVoices() {
+            availableVoices = speechSynthesis.getVoices();
+            if (!availableVoices.length) await new Promise(r => speechSynthesis.addEventListener('voiceschanged', r, { once: true }));
+            availableVoices = speechSynthesis.getVoices();
+            buildVoiceOpts();
+            setDefaultVoice();
+            populateVoices();
+        }
+        function buildVoiceOpts() {
+            const pref = [], oth = [];
+            availableVoices.forEach(v => (v.lang || '').toLowerCase().startsWith('zh') ? pref.push(v) : oth.push(v));
+            allVoiceOptions = [...pref.sort((a, b) => a.lang.startsWith('zh-CN') ? -1 : 1), ...oth].map(v => ({ uri: v.voiceURI, name: v.name, lang: v.lang || '未知' }));
+        }
+        function setDefaultVoice() {
+            if (settings.voiceURI) return;
+            const target = availableVoices.find(v =>
+                v.name.includes('Xiaoxiao') && v.name.includes('Online') && v.name.includes('Natural')
+            );
+            if (target) {
+                settings.voiceURI = target.voiceURI;
+                saveAll();
+            }
+        }
+        function populateVoices() {
+            const sel = voiceSelect; sel.innerHTML = '<option value="">自动选择中文</option>';
+            allVoiceOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o.uri; opt.textContent = `${o.name} (${o.lang})`; opt.title = opt.textContent; if (o.uri === settings.voiceURI) opt.selected = true; sel.appendChild(opt); });
+        }
+        voiceSearch.oninput = () => {
+            const f = voiceSearch.value.toLowerCase(); const sel = voiceSelect; sel.innerHTML = '<option value="">自动选择中文</option>';
+            allVoiceOptions.filter(o => o.name.toLowerCase().includes(f) || o.lang.toLowerCase().includes(f)).forEach(o => { const opt = document.createElement('option'); opt.value = o.uri; opt.textContent = `${o.name} (${o.lang})`; sel.appendChild(opt); });
+        };
+
+        function getBestVoice() {
+            if (settings.voiceURI && availableVoices.length) return availableVoices.find(v => v.voiceURI === settings.voiceURI) || null;
+            return availableVoices.find(v => v.lang.startsWith('zh-CN')) || availableVoices[0];
+        }
+
+        function cleanTextForSpeech(text) {
+            return text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{200B}-\u{200F}\u{FEFF}]/gu, '').replace(/\s+/g, ' ').trim();
+        }
+
+        function splitSentences(text) {
+            text = text.replace(/\r/g, '');
+            const chars = Array.from(text);
+            const rawParts = [];
+            let start = 0;
+            for (let i = 0; i < chars.length; i++) {
+                if ('。！？.!?\n'.includes(chars[i])) {
+                    const part = chars.slice(start, i + 1).join('');
+                    if (part.trim()) rawParts.push({ text: part, start: start });
+                    start = i + 1;
+                }
+            }
+            if (start < chars.length) {
+                const rest = chars.slice(start).join('');
+                if (rest.trim()) rawParts.push({ text: rest, start: start });
+            }
+            const result = [];
+            rawParts.forEach(part => {
+                const cleaned = cleanTextForSpeech(part.text);
+                if (!cleaned) return;
+                if (cleaned.length > 200) {
+                    const subChars = Array.from(cleaned);
+                    let pos = 0, baseStart = part.start;
+                    while (pos < subChars.length) {
+                        const remaining = subChars.slice(pos);
+                        if (remaining.length <= 200) {
+                            result.push({ text: remaining.join(''), start: baseStart + pos });
+                            break;
+                        }
+                        const slice = remaining.slice(0, 200);
+                        let splitPos = -1;
+                        for (let k = slice.length - 1; k >= 0; k--) {
+                            if (slice[k] === ' ' || slice[k] === '，' || slice[k] === ',') {
+                                splitPos = k;
+                                break;
+                            }
+                        }
+                        const cutIdx = (splitPos > 100) ? splitPos + 1 : 200;
+                        result.push({ text: remaining.slice(0, cutIdx).join('').trim(), start: baseStart + pos });
+                        pos += cutIdx;
+                    }
+                } else {
+                    result.push({ text: cleaned, start: part.start });
+                }
+            });
+            return result.filter(s => s.text.trim());
+        }
+
+        function buildQueue() {
+            const q = [];
+            messages.forEach((m, mi) => {
+                if (!m.content.trim()) return;
+                const sentences = splitSentences(m.content);
+                sentences.forEach((s, si) => {
+                    q.push({ msgIndex: mi, sentenceIndex: si, isFirst: si === 0, startOffset: s.start });
+                });
+            });
+            return q;
+        }
+
+        function getSentenceFromMessage(msgIndex, sentenceIndex) {
+            const msg = messages[msgIndex];
+            if (!msg) return null;
+            const sentences = splitSentences(msg.content);
+            if (sentenceIndex >= sentences.length) return null;
+            return sentences[sentenceIndex];
+        }
+
+        function readNext() {
+            if (!isReading || isPaused) return;
+            if (messages.length === 0) { stopReading(); return; }
+
+            if (!isSingleMode && queuePos >= readingQueue.length) {
+                const fullQueue = buildQueue();
+                if (fullQueue.length > readingQueue.length) {
+                    const newItems = fullQueue.slice(readingQueue.length);
+                    readingQueue.push(...newItems);
+                }
+            }
+            if (queuePos >= readingQueue.length) { finishReading(); return; }
+
+            const item = readingQueue[queuePos];
+            if (!messages[item.msgIndex]) { queuePos++; readNext(); return; }
+
+            const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex);
+            if (!sentenceData) { queuePos++; readNext(); return; }
+
+            currentMsgIndex = item.msgIndex;
+            currentSentenceText = sentenceData.text;
+            currentSentenceStart = sentenceData.start;
+            updateReadingUI();
+            updateStatus();
+            updatePlayBtn();
+
+            let speakText = currentSentenceText;
+            if (item.isFirst && settings.announcePrefix) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + currentSentenceText;
+
+            const utterance = new SpeechSynthesisUtterance(speakText);
+            utterance.rate = settings.speechRate;
+            utterance.lang = 'zh-CN';
+            const voice = getBestVoice();
+            if (voice) utterance.voice = voice;
+
+            utterance.onstart = () => { retryCount = 0; };
+            utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } };
+            utterance.onerror = (e) => {
+                if (e.error === 'canceled' || e.error === 'interrupted') return;
+                if (isReading && !isPaused) {
+                    retryCount++;
+                    if (retryCount <= 1) { speechSynthesis.speak(utterance); }
+                    else { retryCount = 0; queuePos++; readNext(); }
+                }
+            };
+            speechSynthesis.speak(utterance);
+        }
+
+        function startReading() {
+            speechSynthesis.cancel();
+            if (isPaused) { resumeReading(); return; }
+            if (isReading) { pauseReading(); return; }
+            readingQueue = buildQueue();
+            if (!readingQueue.length) { showToast('无可读内容'); return; }
+            isReading = true; isPaused = false; queuePos = 0; currentMsgIndex = -1; isSingleMode = false;
+            updatePlayBtn(); updateStatus();
+            readNext();
+        }
+        function pauseReading() {
+            if (!isReading || isPaused) return;
+            isPaused = true; speechSynthesis.cancel();
+            updateReadingUI(); updatePlayBtn(); updateStatus(); showToast('已暂停');
+        }
+        function resumeReading() {
+            if (!isReading || !isPaused) return;
+            isPaused = false; updateReadingUI(); updatePlayBtn(); updateStatus();
+            readNext();
+        }
+        function stopReading() {
+            speechSynthesis.cancel();
+            isReading = false; isPaused = false; currentMsgIndex = -1; readingQueue = []; isSingleMode = false;
+            currentSentenceText = '';
+            updatePlayBtn();
+            updateStatus();
+            renderAll();
+        }
+        function finishReading() {
+            isReading = false; isPaused = false; currentMsgIndex = -1; isSingleMode = false;
+            currentSentenceText = '';
+            renderAll(); updatePlayBtn(); updateStatus();
+            if (settings.announceEnd) {
+                const endUtterance = new SpeechSynthesisUtterance('朗读已结束。');
+                endUtterance.rate = settings.speechRate;
+                endUtterance.lang = 'zh-CN';
+                const voice = getBestVoice();
+                if (voice) endUtterance.voice = voice;
+                speechSynthesis.speak(endUtterance);
+            }
+            showToast('全部朗读完毕');
+        }
+        function playSingle(idx) {
+            if (isReading || isPaused) stopReading();
+            const m = messages[idx]; if (!m?.content.trim()) { showToast('无内容'); return; }
+            readingQueue = buildQueue().filter(item => item.msgIndex === idx);
+            queuePos = 0; currentMsgIndex = -1; isReading = true; isPaused = false; isSingleMode = true;
+            renderAll(); updatePlayBtn(); updateStatus(); readNext();
+        }
+
+        btnPlay.onclick = startReading;
+        btnStop.onclick = stopReading;
+
+        document.addEventListener('keydown', e => {
+            if (e.key === ' ' && (isReading || isPaused) && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); isPaused ? resumeReading() : pauseReading(); }
+            if (e.key === 'Escape' && (isReading || isPaused)) { e.preventDefault(); stopReading(); }
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (isReading || isPaused) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        fontSizeInput.oninput = () => { settings.fontSize = +fontSizeInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
+        letterSpacingInput.oninput = () => { settings.letterSpacing = +letterSpacingInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
+        lineHeightInput.oninput = () => { settings.lineHeight = +lineHeightInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
+        paragraphSpacingInput.oninput = () => { settings.paragraphSpacing = +paragraphSpacingInput.value; applyCSS(); saveAll(); syncUI(); };
+        speechRateInput.oninput = () => { settings.speechRate = +speechRateInput.value; saveAll(); syncUI(); };
+        voiceSelect.onchange = () => { settings.voiceURI = voiceSelect.value; saveAll(); };
+        announcePrefixToggle.onchange = () => { settings.announcePrefix = announcePrefixToggle.checked; saveAll(); };
+        announceEndToggle.onchange = () => { settings.announceEnd = announceEndToggle.checked; saveAll(); };
+
+        btnResetFont.onclick = () => { Object.assign(settings, displayDefaults); applyCSS(); saveAll(); syncUI(); renderAll(); showToast('字体设置已恢复'); };
+        btnResetVoice.onclick = () => { Object.assign(settings, voiceDefaults); saveAll(); syncUI(); populateVoices(); showToast('语音设置已恢复'); };
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => { settings.theme = btn.dataset.theme; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); });
+        });
+
+        loadAll();
+        if (messages.length === 0) createMessage('');
+        syncUI();
+        applyCSS();
+        loadVoices().then(() => {
+            renderAll();
+            updateStatus();
+            updatePlayBtn();
+        });
+    })();
+</script>
+</body>
+</html>
