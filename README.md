@@ -1,36 +1,7 @@
-# tools
-有用的没用的有趣的无趣的好玩的报玩的全放这啦~
-2025-12-4 
-1_hsb-trainer.html更新了
-1.增加色相立方体抓色
-2.导出图片的数据详情预览，确定下载按钮位置
-3.完善提示逻辑
-4.修复开始记录后误触“明度”按钮改变随机范围的问题
-5.开始记录后，如果点击check提示按钮为绿色，就记下当前答案及差值，无需再点击查看答案
-6.导出背景色模式若为自定义颜色，显示hex值
-7.点击“随机颜色范围控制”快速选为全范围
-8.背景色按钮选择改绿框
-9.更新隐藏功能说明
-10.标题描述刷新不会重置
-11.优化数据详情导出图片的样式
-12.hsb色彩模型说明，新增护眼知识
-13.页脚点名字跳转到作者B站主页
+⚠️ 免责声明
+所有工具为个人兴趣作品，免费提供，不提供任何形式的明示或默示担保，包括但不限于对适销性、特定用途适用性的担保。
+使用者应自行承担使用本工具的一切风险。作者不对因使用本工具造成的任何直接或间接损失承担责任。
 
-2025-12-8 
-1_hsb-trainer.html更新了
-1.数据详情——加入了差值的正负表现，加入了背景色方块（导出文本里为背景色HSB值）
-2.修复在开始记录之后，提示为绿色但没有点击切换到下一题，就没有被记录的问题
-3.导出文本默认勾选数据详情
-4.优化版面，更改了check和提示为——提和示
-5.新增两种区域背景颜色，分别是#535353（ps2021）和#4e4e4e（优动漫）
-6.把数据详情和数据分析调整主次展示
-7.更新了各处文字说明
-8.加入记录练习者昵称
-9.修复记录逻辑
-10.修复了多行练习心得导出时的展示问题
-11.及格线的输入框最小值为1
-12.更新总体正确率函数
-13.增加平板适配
-
-2025-12-11
-做了字描边+去背景灰底
+⚠️ Disclaimer
+All tools are personal interest projects and are provided free of charge. No warranty of any kind, either express or implied, is provided, including but not limited to warranties of merchantability or fitness for a particular purpose.
+Users assume all risks associated with the use of these tools. The author shall not be held liable for any direct or indirect damages arising from the use of these tools.
