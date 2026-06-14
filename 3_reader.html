@@ -76,7 +76,7 @@
         .msg-card {
             background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow);
             border:2px solid transparent; transition:0.2s; overflow:hidden;
-            position: relative; z-index: 1; /* 遮盖背景文字 */
+            position: relative; z-index: 1; 
         }
         .msg-card.reading { border-color:var(--accent-warm) !important; box-shadow:0 0 0 7px rgba(240,192,64,0.18), var(--shadow-lg); }
         .msg-card.drag-over-card { border-color:var(--accent) !important; background:var(--accent-light) !important; }
@@ -859,7 +859,7 @@
             settingsCollapsed = !settingsCollapsed;
             settingsPanel.classList.toggle('collapsed', settingsCollapsed);
             mainArea.classList.toggle('expanded', settingsCollapsed);
-            btnToggleSettings.textContent = settingsCollapsed ? '展开设置' : '折叠设置';
+            btnToggleSettings.textContent = settingsCollapsed ? '展开设置' : '收起设置';
         });
 
         async function loadVoices() {
