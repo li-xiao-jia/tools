@@ -69,10 +69,14 @@
             border-radius:20px; font-weight:500; opacity:0.8; flex-basis: 100%; order: 1;
         }
         .status-badge.active { background:#fff8dd; color:#7a6200; font-weight:700; }
-        .message-list { flex:1; display: flex; flex-direction: column; gap: var(--paragraph-spacing); }
+        .message-list {
+            flex:1; display: flex; flex-direction: column; gap: var(--paragraph-spacing);
+            position: relative;
+        }
         .msg-card {
             background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow);
             border:2px solid transparent; transition:0.2s; overflow:hidden;
+            position: relative; z-index: 1; /* 遮盖背景文字 */
         }
         .msg-card.reading { border-color:var(--accent-warm) !important; box-shadow:0 0 0 7px rgba(240,192,64,0.18), var(--shadow-lg); }
         .msg-card.drag-over-card { border-color:var(--accent) !important; background:var(--accent-light) !important; }
@@ -85,8 +89,10 @@
         }
         .msg-number {
             background: var(--accent-light); color: var(--accent); border-radius: 18px; padding: 0 14px;
-            font-weight: 700; cursor: pointer; transition: 0.2s; border: 2px solid transparent; line-height: 32px;
+            font-weight: 700; transition: 0.2s; border: 2px solid transparent; line-height: 32px;
+            cursor: grab; user-select: none;
         }
+        .msg-number:active { cursor: grabbing; }
         .msg-card.reading .msg-number { background: var(--accent-warm); color: #5c3d00; }
         .sentence-indicator {
             padding: 4px 16px 8px; font-size: 15px; color: #b45f06; background: #fff8e7;
@@ -130,6 +136,20 @@
             margin-top:12px; transition:0.2s; opacity:0.8; text-align:center;
         }
         .btn-add-new:hover { border-color:var(--accent); opacity:1; }
+        .bg-hint {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(32px, 8vw, 88px);
+            font-weight: 800;
+            color: var(--text-color);
+            opacity: 0.07;
+            pointer-events: none;
+            z-index: 0;
+            text-align: center;
+            white-space: pre-line;
+            padding: 40px;
+            line-height: 1.3;
+        }
         .settings-panel {
             width: 320px; flex-shrink: 0; background: var(--card-bg); border-left: 1px solid var(--border-color);
             padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
@@ -145,7 +165,7 @@
             font-size: var(--settings-font-size); background: var(--card-bg); color: var(--text-color); width: 100%;
         }
         .voice-group { flex: 1; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
-.voice-group select { flex: 1; min-height: 0; font-size: var(--settings-font-size); overflow-x: auto; white-space: nowrap; }
+        .voice-group select { flex: 1; min-height: 0; font-size: var(--settings-font-size); overflow-x: auto; white-space: nowrap; }
         .voice-search { padding: 7px 10px; border-radius: 8px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-size: var(--settings-font-size); }
         .theme-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
         .theme-btn {
@@ -154,7 +174,11 @@
             transition: 0.2s; color: var(--text-color);
         }
         .theme-btn.active { border-color: var(--accent); background: var(--accent-light); }
-        .btn-reset-settings { padding: 9px 16px; border-radius: 20px; border: 2px solid var(--border-color); background: var(--card-bg); cursor: pointer; font-size: var(--settings-font-size); color: var(--text-color); font-weight: 600; }
+        .btn-reset-settings {
+            display: block; margin: 0 auto; padding: 6px 12px; font-size: 13px; border-radius: 20px;
+            border: 2px solid var(--border-color); background: var(--card-bg); cursor: pointer;
+            color: var(--text-color); font-weight: 600; white-space: nowrap;
+        }
         .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .toggle-row .toggle-label { font-size: var(--settings-font-size); font-weight: 700; color: var(--text-color); opacity: 0.8; flex: 1; }
         .toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
@@ -163,6 +187,22 @@
         .toggle-slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
         .toggle-switch input:checked+.toggle-slider { background: var(--accent); }
         .toggle-switch input:checked+.toggle-slider::before { transform: translateX(22px); }
+        .setting-label-row { display: flex; align-items: baseline; gap: 4px; }
+        .setting-label-row label { font-size: var(--settings-font-size); font-weight: 700; color: var(--text-color); opacity: 0.8; }
+        .setting-label-row span { font-size: 18px; }
+        .setting-row { display: flex; gap: 16px; }
+        .setting-row .setting-group { flex: 1; }
+        .sort-ghost {
+            position: fixed; pointer-events: none; z-index: 1000;
+            background: var(--accent-light); border: 2px dashed var(--accent);
+            border-radius: 8px; padding: 4px 16px; font-weight: 700;
+            color: var(--accent); opacity: 0.9;
+            transform: translate(-50%, -50%);
+        }
+        .sort-indicator {
+            height: 4px; background: #4a7c6b; margin: 0 0; border-radius: 2px;
+            pointer-events: none; position: relative; z-index: 5;
+        }
 
         .modal-overlay {
             position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4);
@@ -194,17 +234,19 @@
             <button class="btn btn-stop" id="btnStop">停止</button>
             <span class="status-badge" id="statusBadge">就绪 · 共 <strong id="msgCount">1</strong> 条</span>
             <button class="btn btn-tool" id="btnAddTop" style="color: #1a73e8;">新增信息</button>
-            <button class="btn btn-tool" id="btnCollapseAll">全部折叠</button>
-            <button class="btn btn-tool" id="btnExpandAll">全部展开</button>
-            <button class="btn btn-tool danger" id="btnClearAll">清空全部</button>
-            <button class="btn btn-toggle-settings" id="btnToggleSettings">折叠设置</button>
+            <button class="btn btn-tool" id="btnCollapseAll">全折叠</button>
+            <button class="btn btn-tool" id="btnExpandAll">全展开</button>
+            <button class="btn btn-tool danger" id="btnClearAll">清空</button>
+            <button class="btn btn-toggle-settings" id="btnToggleSettings">收起设置</button>
         </div>
-        <div class="message-list" id="messageList"></div>
+        <div class="message-list" id="messageList">
+            <div class="bg-hint">把文字拖入空白处，<br>点击开始朗读即可</div>
+        </div>
         <button class="btn-add-new" id="btnAddNew">点击此处或拖入空白处，可新增消息，支持拖入文本，一个或多个.txt .md文件</button>
     </main>
     <aside class="settings-panel" id="settingsPanel">
         <div class="settings-content">
-            <span style="font-weight:700;text-align:center;color:var(--text-color);font-size:var(--settings-font-size);">显示与朗读设置</span>
+            <!-- 已删除“显示与朗读设置”标题 -->
             <div class="setting-group"><label>配色方案</label>
                 <div class="theme-row" id="themeRow">
                     <button class="theme-btn active" data-theme="classic">经典白</button>
@@ -212,13 +254,28 @@
                     <button class="theme-btn" data-theme="dark">深邃灰</button>
                 </div>
             </div>
-            <div class="setting-group"><label>字体大小</label><input type="range" id="fontSize" min="14" max="52" value="20"><span id="fontSizeVal">20px</span></div>
-            <div class="setting-group"><label>字间距</label><input type="range" id="letterSpacing" min="-2" max="14" value="0.5" step="0.5"><span id="letterSpacingVal">0.5px</span></div>
-            <div class="setting-group"><label>行间距</label><input type="range" id="lineHeight" min="1.2" max="3.8" value="1.8" step="0.05"><span id="lineHeightVal">1.8</span></div>
-            <div class="setting-group"><label>消息间距</label><input type="range" id="paragraphSpacing" min="4" max="44" value="16"><span id="paragraphSpacingVal">16px</span></div>
+            <div class="setting-group">
+                <div class="setting-label-row"><label>字体大小：</label><span id="fontSizeVal">20px</span></div>
+                <input type="range" id="fontSize" min="14" max="52" value="20">
+            </div>
+            <div class="setting-row">
+                <div class="setting-group">
+                    <div class="setting-label-row"><label>字间距：</label><span id="letterSpacingVal">0.5px</span></div>
+                    <input type="range" id="letterSpacing" min="-2" max="14" value="0.5" step="0.5">
+                </div>
+                <div class="setting-group">
+                    <div class="setting-label-row"><label>行间距：</label><span id="lineHeightVal">1.8</span></div>
+                    <input type="range" id="lineHeight" min="1.2" max="3.8" value="1.8" step="0.05">
+                </div>
+            </div>
             <button class="btn-reset-settings" id="btnResetFont">恢复字体默认设置</button>
             <hr>
-            <div class="setting-group"><label>朗读语速</label><input type="range" id="speechRate" min="0.4" max="5.0" value="1.2" step="0.05"><span id="speechRateVal">1.2x</span></div>
+            <div class="setting-group">
+                <div class="setting-label-row"><label>朗读语速：</label><span id="speechRateVal">1.2x</span></div>
+                <input type="range" id="speechRate" min="0.4" max="5.0" value="1.2" step="0.05">
+            </div>
+            <div class="setting-group"><label>搜索语音</label><input type="text" class="voice-search" id="voiceSearch" placeholder="输入关键词过滤"></div>
+            <div class="voice-group setting-group"><label>朗读语音</label><select id="voiceSelect" size="6"></select></div>
             <div class="toggle-row">
                 <span class="toggle-label">播报"开始朗读第几条"</span>
                 <label class="toggle-switch"><input type="checkbox" id="announcePrefix" checked><span class="toggle-slider"></span></label>
@@ -231,10 +288,8 @@
                 <span class="toggle-label">过滤 Markdown 格式符号</span>
                 <label class="toggle-switch"><input type="checkbox" id="filterMarkdown" checked><span class="toggle-slider"></span></label>
             </div>
-            <div class="setting-group"><label>搜索语音</label><input type="text" class="voice-search" id="voiceSearch" placeholder="输入关键词过滤"></div>
-            <div class="voice-group setting-group"><label>朗读语音</label><select id="voiceSelect" size="6"></select></div>
             <button class="btn-reset-settings" id="btnResetVoice">恢复语音默认设置</button>
-            <p style="font-size:11px;color:var(--text-color);opacity:0.6;text-align:center;">制作人：励小加</p>
+            <p style="font-size:11px;color:var(--text-color);opacity:0.6;text-align:center;">制作人：<a href="https://space.bilibili.com/557858654" target="_blank" style="color:inherit;text-decoration:none;">励小加</a></p>
         </div>
     </aside>
 </div>
@@ -259,7 +314,6 @@
         const fontSizeInput = $('fontSize'), fontSizeVal = $('fontSizeVal');
         const letterSpacingInput = $('letterSpacing'), letterSpacingVal = $('letterSpacingVal');
         const lineHeightInput = $('lineHeight'), lineHeightVal = $('lineHeightVal');
-        const paragraphSpacingInput = $('paragraphSpacing'), paragraphSpacingVal = $('paragraphSpacingVal');
         const speechRateInput = $('speechRate'), speechRateVal = $('speechRateVal');
         const voiceSelect = $('voiceSelect'), voiceSearch = $('voiceSearch');
         const btnResetFont = $('btnResetFont'), btnResetVoice = $('btnResetVoice');
@@ -284,10 +338,24 @@
         let settingsCollapsed = false;
         let pendingDropData = null;
 
-        const displayDefaults = { fontSize: 20, letterSpacing: 0.5, lineHeight: 1.8, paragraphSpacing: 16 };
+        const displayDefaults = { fontSize: 20, letterSpacing: 0.5, lineHeight: 1.8 };
         const voiceDefaults = { speechRate: 1.2, voiceURI: '', announcePrefix: true, announceEnd: true, filterMarkdown: true };
         const defaultTheme = 'classic';
-        let settings = { ...displayDefaults, ...voiceDefaults, theme: defaultTheme };
+        let settings = { ...displayDefaults, paragraphSpacing: 16, ...voiceDefaults, theme: defaultTheme };
+
+        /* ========= 长按排序状态 ========= */
+        let sortState = {
+            active: false,
+            sourceIndex: -1,
+            sourceId: null,
+            ghost: null,
+            indicator: null,
+            targetIndex: -1,
+            pos: 'after',
+            startX: 0, startY: 0,
+            timer: null,
+            moved: false
+        };
 
         function saveAll() {
             try {
@@ -317,9 +385,9 @@
             root.style.setProperty('--font-size', settings.fontSize + 'px');
             root.style.setProperty('--letter-spacing', settings.letterSpacing + 'px');
             root.style.setProperty('--line-height', settings.lineHeight);
-            root.style.setProperty('--paragraph-spacing', settings.paragraphSpacing + 'px');
+            root.style.setProperty('--paragraph-spacing', (settings.paragraphSpacing || 16) + 'px');
             root.style.setProperty('--settings-font-size', '15px');
-            messageList.style.gap = settings.paragraphSpacing + 'px';
+            messageList.style.gap = (settings.paragraphSpacing || 16) + 'px';
             document.querySelectorAll('.msg-body textarea').forEach(ta => {
                 ta.style.fontSize = settings.fontSize + 'px';
                 ta.style.letterSpacing = settings.letterSpacing + 'px';
@@ -335,7 +403,6 @@
             fontSizeInput.value = settings.fontSize; fontSizeVal.textContent = settings.fontSize + 'px';
             letterSpacingInput.value = settings.letterSpacing; letterSpacingVal.textContent = settings.letterSpacing + 'px';
             lineHeightInput.value = settings.lineHeight; lineHeightVal.textContent = settings.lineHeight.toFixed(2);
-            paragraphSpacingInput.value = settings.paragraphSpacing; paragraphSpacingVal.textContent = settings.paragraphSpacing + 'px';
             speechRateInput.value = settings.speechRate; speechRateVal.textContent = settings.speechRate.toFixed(1) + 'x';
             if (voiceSelect.value !== settings.voiceURI && settings.voiceURI) voiceSelect.value = settings.voiceURI;
             announcePrefixToggle.checked = settings.announcePrefix;
@@ -380,7 +447,7 @@
         }
 
         function renderAll() {
-            messageList.innerHTML = messages.map((m, i) => {
+            messageList.innerHTML = '<div class="bg-hint">把文字拖入空白处，<br>点击开始朗读即可</div>' + messages.map((m, i) => {
                 const preview = (m.content || '(空)').replace(/\n/g, ' ').substring(0, 80);
                 const isCurrent = currentMsgIndex === i;
                 let playBtnClass = 'msg-btn play-msg-btn';
@@ -389,10 +456,10 @@
                 const isEmptyFirst = (i === 0 && messages.length === 1 && !m.content);
                 return `<div class="msg-card${m.collapsed?' collapsed':''}${isCurrent?' reading':''}${isEmptyFirst?' first-empty':''}" data-id="${m.id}" data-index="${i}">
                     <div class="msg-header">
-                        <span class="msg-number" data-toggle="${m.id}">第${i+1}条</span>
+                        <span class="msg-number" data-reorder="${i}">第${i+1}条</span>
                         <button class="msg-btn" data-toggle="${m.id}">${m.collapsed?'展开':'折叠'}</button>
                         <button class="${playBtnClass}" data-play="${i}">${(isCurrent && isReading) ? (isPaused ? '继续朗读' : '暂停朗读') : '朗读本条'}</button>
-                        <button class="msg-btn delete-msg-btn" data-delete="${m.id}">删除</button>
+                        <button class="msg-btn delete-msg-btn" data-delete="${m.id}">双击删除</button>
                     </div>
                     <div class="sentence-indicator">🔊 ${escapeHtml(currentSentenceText)}</div>
                     <div class="msg-preview">${escapeHtml(preview)}</div>
@@ -400,6 +467,7 @@
                 </div>`;
             }).join('');
             bindAllEvents();
+            bindReorderEvents();
             applyCSS();
             updateReadingHighlight();
             setTimeout(() => document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)), 10);
@@ -473,7 +541,7 @@
                     playSingle(idx);
                 }
             });
-            document.querySelectorAll('[data-delete]').forEach(el => el.onclick = e => { e.stopPropagation(); deleteMsg(+el.dataset.delete); });
+            document.querySelectorAll('[data-delete]').forEach(el => el.ondblclick = e => { e.stopPropagation(); deleteMsg(+el.dataset.delete); });
             document.querySelectorAll('.msg-body textarea').forEach(ta => {
                 ta.oninput = () => { const m = messages.find(m => m.id === +ta.dataset.id); if (m) { m.content = ta.value; saveAll(); } autoResize(ta); };
                 autoResize(ta);
@@ -519,6 +587,177 @@
                     }
                 });
             });
+        }
+
+        /* ========= 长按排序事件绑定 ========= */
+        function bindReorderEvents() {
+            document.querySelectorAll('[data-reorder]').forEach(el => {
+                el.addEventListener('mousedown', onReorderStart);
+                el.addEventListener('touchstart', onReorderStart, { passive: false });
+            });
+        }
+
+        function onReorderStart(e) {
+            const target = e.currentTarget;
+            const index = parseInt(target.dataset.reorder);
+            if (isNaN(index)) return;
+
+            // 朗读或暂停时，禁止拖动当前正在朗读的那条消息
+            if ((isReading || isPaused) && index === currentMsgIndex) {
+                showToast('正在朗读的消息不可移动');
+                return;
+            }
+
+            e.preventDefault();
+            const point = e.touches ? e.touches[0] : e;
+            sortState.sourceIndex = index;
+            sortState.sourceId = messages[index].id;
+            sortState.startX = point.clientX;
+            sortState.startY = point.clientY;
+            sortState.moved = false;
+            sortState.active = false;
+
+            clearTimeout(sortState.timer);
+            sortState.timer = setTimeout(() => {
+                sortState.active = true;
+                createGhost(point.clientX, point.clientY);
+                document.addEventListener('mousemove', onReorderMove);
+                document.addEventListener('mouseup', onReorderEnd);
+                document.addEventListener('touchmove', onReorderMove, { passive: false });
+                document.addEventListener('touchend', onReorderEnd);
+                document.body.style.userSelect = 'none';
+            }, 300);
+        }
+
+        function createGhost(x, y) {
+            const ghost = document.createElement('div');
+            ghost.className = 'sort-ghost';
+            ghost.textContent = `第${sortState.sourceIndex + 1}条`;
+            document.body.appendChild(ghost);
+            ghost.style.left = x + 'px';
+            ghost.style.top = y + 'px';
+            sortState.ghost = ghost;
+        }
+
+        function onReorderMove(e) {
+            if (!sortState.active) return;
+            e.preventDefault();
+            const point = e.touches ? e.touches[0] : e;
+            if (sortState.ghost) {
+                sortState.ghost.style.left = point.clientX + 'px';
+                sortState.ghost.style.top = point.clientY + 'px';
+            }
+            const cards = [...messageList.querySelectorAll('.msg-card')];
+            let targetIndex = -1;
+            let pos = 'after';
+            for (let i = 0; i < cards.length; i++) {
+                const rect = cards[i].getBoundingClientRect();
+                if (point.clientY < rect.top + rect.height / 2) {
+                    targetIndex = i;
+                    pos = 'before';
+                    break;
+                } else if (i === cards.length - 1 || point.clientY < cards[i+1].getBoundingClientRect().top) {
+                    targetIndex = i;
+                    pos = 'after';
+                    break;
+                }
+            }
+            if (targetIndex !== -1) {
+                if (targetIndex === sortState.sourceIndex) {
+                    clearIndicator();
+                    sortState.targetIndex = -1;
+                } else {
+                    showIndicator(cards[targetIndex], pos);
+                    sortState.targetIndex = targetIndex;
+                    sortState.pos = pos;
+                }
+            }
+        }
+
+        function showIndicator(card, pos) {
+            clearIndicator();
+            const indicator = document.createElement('div');
+            indicator.className = 'sort-indicator';
+            if (pos === 'before') {
+                card.parentNode.insertBefore(indicator, card);
+            } else {
+                card.parentNode.insertBefore(indicator, card.nextSibling);
+            }
+            sortState.indicator = indicator;
+        }
+
+        function clearIndicator() {
+            if (sortState.indicator) {
+                sortState.indicator.remove();
+                sortState.indicator = null;
+            }
+        }
+
+        function onReorderEnd(e) {
+            clearTimeout(sortState.timer);
+            document.removeEventListener('mousemove', onReorderMove);
+            document.removeEventListener('mouseup', onReorderEnd);
+            document.removeEventListener('touchmove', onReorderMove);
+            document.removeEventListener('touchend', onReorderEnd);
+            document.body.style.userSelect = '';
+
+            if (sortState.ghost) {
+                sortState.ghost.remove();
+                sortState.ghost = null;
+            }
+            clearIndicator();
+
+            if (!sortState.active || sortState.targetIndex === -1 || sortState.sourceIndex === sortState.targetIndex) {
+                resetSortState();
+                return;
+            }
+
+            const from = sortState.sourceIndex;
+            let to = sortState.targetIndex;
+            if (sortState.pos === 'after' && to < from) to++;
+            else if (sortState.pos === 'before' && to > from) to--;
+
+            // 朗读/暂停状态下，需保持当前句子的播放位置
+            if (isReading || isPaused) {
+                const currentMsgId = messages[currentMsgIndex]?.id;
+                const currentSentenceIdx = readingQueue[queuePos]?.sentenceIndex;
+                const movedItem = messages.splice(from, 1)[0];
+                messages.splice(to, 0, movedItem);
+                // 重建队列并找回当前句子
+                readingQueue = buildQueue();
+                const newMsgIndex = messages.findIndex(m => m.id === currentMsgId);
+                if (newMsgIndex !== -1 && currentSentenceIdx !== undefined) {
+                    const newPos = readingQueue.findIndex(item => item.msgIndex === newMsgIndex && item.sentenceIndex === currentSentenceIdx);
+                    if (newPos !== -1) {
+                        queuePos = newPos;
+                    } else {
+                        const firstPos = readingQueue.findIndex(item => item.msgIndex === newMsgIndex);
+                        queuePos = firstPos !== -1 ? firstPos : 0;
+                    }
+                    currentMsgIndex = newMsgIndex;
+                } else {
+                    currentMsgIndex = newMsgIndex;
+                    queuePos = 0;
+                }
+            } else {
+                const movedItem = messages.splice(from, 1)[0];
+                messages.splice(to, 0, movedItem);
+            }
+
+            resetSortState();
+            renderAll();
+            updateStatus();
+            saveAll();
+            showToast('排序已更新');
+        }
+
+        function resetSortState() {
+            sortState.active = false;
+            sortState.sourceIndex = -1;
+            sortState.sourceId = null;
+            sortState.targetIndex = -1;
+            sortState.pos = 'after';
+            sortState.moved = false;
         }
 
         function showDropModal(cardId, content) {
@@ -835,11 +1074,6 @@
         btnPlay.onclick = startReading;
         btnStop.onclick = stopReading;
 
-        document.addEventListener('keydown', e => {
-            if (e.key === ' ' && (isReading || isPaused) && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); isPaused ? resumeReading() : pauseReading(); }
-            if (e.key === 'Escape' && (isReading || isPaused)) { e.preventDefault(); stopReading(); }
-        });
-
         window.addEventListener('beforeunload', function(e) {
             if (isReading || isPaused) {
                 e.preventDefault();
@@ -850,7 +1084,6 @@
         fontSizeInput.oninput = () => { settings.fontSize = +fontSizeInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
         letterSpacingInput.oninput = () => { settings.letterSpacing = +letterSpacingInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
         lineHeightInput.oninput = () => { settings.lineHeight = +lineHeightInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
-        paragraphSpacingInput.oninput = () => { settings.paragraphSpacing = +paragraphSpacingInput.value; applyCSS(); saveAll(); syncUI(); };
         speechRateInput.oninput = () => { settings.speechRate = +speechRateInput.value; saveAll(); syncUI(); };
         voiceSelect.onchange = () => { settings.voiceURI = voiceSelect.value; saveAll(); };
         announcePrefixToggle.onchange = () => { settings.announcePrefix = announcePrefixToggle.checked; saveAll(); };
