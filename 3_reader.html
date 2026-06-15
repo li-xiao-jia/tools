@@ -8,8 +8,9 @@
     <title>消息朗读助手</title>
     <style>
         :root {
-            --font-size: 20px;
-            --letter-spacing: 0.5px;
+            --font-size: 21px;
+            --font-weight: 400;
+            --letter-spacing: 1.5px;
             --line-height: 1.8;
             --paragraph-spacing: 16px;
             --text-color: #1e1e1e;
@@ -58,7 +59,7 @@
         .btn:active { transform: scale(0.95); }
         .btn-play { background:var(--accent); color:#fff; font-size:16px; padding:12px 24px; box-shadow:0 3px 12px rgba(0,0,0,0.2); border-color:transparent; }
         .btn-play.playing { background:#e07b20; animation: pulse 1.5s infinite; }
-        .btn-play.paused { background:#8a7a5e; }
+        .btn-play.paused { background:#5e8a7a; }
         @keyframes pulse { 50% { box-shadow:0 6px 24px rgba(224,123,32,0.55); } }
         .btn-stop { border-color:var(--border-color); }
         .btn-tool { border-color:var(--border-color); font-size:14px; padding:8px 14px; }
@@ -76,7 +77,7 @@
         .msg-card {
             background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow);
             border:2px solid transparent; transition:0.2s; overflow:hidden;
-            position: relative; z-index: 1; 
+            position: relative; z-index: 1;
         }
         .msg-card.reading { border-color:var(--accent-warm) !important; box-shadow:0 0 0 7px rgba(240,192,64,0.18), var(--shadow-lg); }
         .msg-card.drag-over-card { border-color:var(--accent) !important; background:var(--accent-light) !important; }
@@ -108,22 +109,24 @@
         .msg-btn:hover { background: var(--accent-light); }
         .msg-btn.delete-msg-btn { color: var(--danger); border-color: #f0d0d0; margin-left: auto; }
         .msg-btn.play-msg-btn.playing { background: #e07b20; color: #fff; border-color: #e07b20; }
-        .msg-btn.play-msg-btn.paused { background: #8a7a5e; color: #fff; border-color: #8a7a5e; }
+        .msg-btn.play-msg-btn.paused { background: #5e8a7a; color: #fff; border-color: #5e8a7a; }
         .msg-body {
             padding: 12px 16px; max-height: 80vh; overflow-y: auto; position: relative;
         }
         .msg-body .highlight-overlay {
             position: absolute; top: 12px; left: 16px; right: 16px; pointer-events: none;
             white-space: pre-wrap; word-wrap: break-word; font-size: var(--font-size);
-            font-family: inherit; letter-spacing: var(--letter-spacing);
-            line-height: var(--line-height); color: transparent;
+            font-weight: var(--font-weight); font-family: inherit;
+            letter-spacing: var(--letter-spacing); line-height: var(--line-height);
+            color: transparent;
         }
         .highlight-overlay mark {
             background: var(--highlight-bg); color: transparent; border-radius: 4px;
         }
         .msg-body textarea {
             width: 100%; border: none; background: transparent; font-size: var(--font-size);
-            font-family: inherit; color: var(--text-color); letter-spacing: var(--letter-spacing);
+            font-weight: var(--font-weight); font-family: inherit;
+            color: var(--text-color); letter-spacing: var(--letter-spacing);
             line-height: var(--line-height); resize: none; outline: none; min-height: 50px;
             field-sizing: content; border-radius: 6px; position: relative; z-index: 1;
         }
@@ -153,6 +156,7 @@
         .settings-panel {
             width: 320px; flex-shrink: 0; background: var(--card-bg); border-left: 1px solid var(--border-color);
             padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
+            overflow-x: hidden; /* 防止横向滚动条 */
             position: sticky; top: 0; z-index: 40; height: 100vh; transition: all 0.3s ease;
             font-size: var(--settings-font-size);
         }
@@ -191,7 +195,11 @@
         .setting-label-row label { font-size: var(--settings-font-size); font-weight: 700; color: var(--text-color); opacity: 0.8; }
         .setting-label-row span { font-size: 18px; }
         .setting-row { display: flex; gap: 16px; }
-        .setting-row .setting-group { flex: 1; }
+        .setting-row .setting-group {
+            flex: 1;
+            min-width: 0; /* 防止内容撑开 flex 容器 */
+            overflow: hidden; /* 隐藏溢出内容 */
+        }
         .sort-ghost {
             position: fixed; pointer-events: none; z-index: 1000;
             background: var(--accent-light); border: 2px dashed var(--accent);
@@ -203,7 +211,6 @@
             height: 4px; background: #4a7c6b; margin: 0 0; border-radius: 2px;
             pointer-events: none; position: relative; z-index: 5;
         }
-
         .modal-overlay {
             position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4);
             z-index: 300; display: flex; align-items: center; justify-content: center;
@@ -215,7 +222,6 @@
         .modal-box p { margin-bottom: 20px; font-size: 16px; font-weight: 500; color: var(--text-color); white-space: pre-line; }
         .modal-buttons { display: flex; gap: 12px; justify-content: center; }
         .modal-buttons .btn { min-width: 80px; }
-
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #3a3a3a; color: #fff; padding: 13px 26px; border-radius: 28px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 200; }
         .toast.show { opacity: 1; }
         @media (max-width: 900px) {
@@ -246,7 +252,6 @@
     </main>
     <aside class="settings-panel" id="settingsPanel">
         <div class="settings-content">
-            <!-- 已删除“显示与朗读设置”标题 -->
             <div class="setting-group"><label>配色方案</label>
                 <div class="theme-row" id="themeRow">
                     <button class="theme-btn active" data-theme="classic">经典白</button>
@@ -254,14 +259,20 @@
                     <button class="theme-btn" data-theme="dark">深邃灰</button>
                 </div>
             </div>
-            <div class="setting-group">
-                <div class="setting-label-row"><label>字体大小：</label><span id="fontSizeVal">20px</span></div>
-                <input type="range" id="fontSize" min="14" max="52" value="20">
+            <div class="setting-row">
+                <div class="setting-group">
+                    <div class="setting-label-row"><label>字体大小：</label><span id="fontSizeVal">21px</span></div>
+                    <input type="range" id="fontSize" min="14" max="52" value="21">
+                </div>
+                <div class="setting-group">
+                    <div class="setting-label-row"><label>粗细：</label><span id="fontWeightVal">正常</span></div>
+                    <input type="range" id="fontWeight" min="1" max="3" value="2" step="1">
+                </div>
             </div>
             <div class="setting-row">
                 <div class="setting-group">
-                    <div class="setting-label-row"><label>字间距：</label><span id="letterSpacingVal">0.5px</span></div>
-                    <input type="range" id="letterSpacing" min="-2" max="14" value="0.5" step="0.5">
+                    <div class="setting-label-row"><label>字间距：</label><span id="letterSpacingVal">1.5px</span></div>
+                    <input type="range" id="letterSpacing" min="-2" max="14" value="1.5" step="0.5">
                 </div>
                 <div class="setting-group">
                     <div class="setting-label-row"><label>行间距：</label><span id="lineHeightVal">1.8</span></div>
@@ -312,6 +323,7 @@
         const msgCountEl = $('msgCount'), messageList = $('messageList'), btnAddNew = $('btnAddNew');
         const toast = $('toast'), mainArea = $('mainArea');
         const fontSizeInput = $('fontSize'), fontSizeVal = $('fontSizeVal');
+        const fontWeightInput = $('fontWeight'), fontWeightVal = $('fontWeightVal');
         const letterSpacingInput = $('letterSpacing'), letterSpacingVal = $('letterSpacingVal');
         const lineHeightInput = $('lineHeight'), lineHeightVal = $('lineHeightVal');
         const speechRateInput = $('speechRate'), speechRateVal = $('speechRateVal');
@@ -338,12 +350,23 @@
         let settingsCollapsed = false;
         let pendingDropData = null;
 
-        const displayDefaults = { fontSize: 20, letterSpacing: 0.5, lineHeight: 1.8 };
+        const displayDefaults = { fontSize: 21, fontWeight: 400, letterSpacing: 1.5, lineHeight: 1.8 };
         const voiceDefaults = { speechRate: 1.2, voiceURI: '', announcePrefix: true, announceEnd: true, filterMarkdown: true };
         const defaultTheme = 'classic';
         let settings = { ...displayDefaults, paragraphSpacing: 16, ...voiceDefaults, theme: defaultTheme };
 
-        /* ========= 长按排序状态 ========= */
+        const fontWeightOptions = [300, 400, 700];
+        const fontWeightLabels = ['细', '正常', '粗'];
+
+        function fontWeightToSlider(val) {
+            const idx = fontWeightOptions.indexOf(val);
+            return idx >= 0 ? idx + 1 : 2;
+        }
+
+        function sliderToFontWeight(sliderVal) {
+            return fontWeightOptions[sliderVal - 1] || 400;
+        }
+
         let sortState = {
             active: false,
             sourceIndex: -1,
@@ -378,11 +401,15 @@
             if (settings.announcePrefix === undefined) settings.announcePrefix = true;
             if (settings.announceEnd === undefined) settings.announceEnd = true;
             if (settings.filterMarkdown === undefined) settings.filterMarkdown = true;
+            if (settings.fontWeight === undefined || !fontWeightOptions.includes(settings.fontWeight)) {
+                settings.fontWeight = 400;
+            }
         }
 
         function applyCSS() {
             const root = document.documentElement;
             root.style.setProperty('--font-size', settings.fontSize + 'px');
+            root.style.setProperty('--font-weight', settings.fontWeight);
             root.style.setProperty('--letter-spacing', settings.letterSpacing + 'px');
             root.style.setProperty('--line-height', settings.lineHeight);
             root.style.setProperty('--paragraph-spacing', (settings.paragraphSpacing || 16) + 'px');
@@ -390,6 +417,7 @@
             messageList.style.gap = (settings.paragraphSpacing || 16) + 'px';
             document.querySelectorAll('.msg-body textarea').forEach(ta => {
                 ta.style.fontSize = settings.fontSize + 'px';
+                ta.style.fontWeight = settings.fontWeight;
                 ta.style.letterSpacing = settings.letterSpacing + 'px';
                 ta.style.lineHeight = settings.lineHeight;
             });
@@ -401,6 +429,9 @@
 
         function syncUI() {
             fontSizeInput.value = settings.fontSize; fontSizeVal.textContent = settings.fontSize + 'px';
+            const sliderPos = fontWeightToSlider(settings.fontWeight);
+            fontWeightInput.value = sliderPos;
+            fontWeightVal.textContent = fontWeightLabels[sliderPos - 1] || '正常';
             letterSpacingInput.value = settings.letterSpacing; letterSpacingVal.textContent = settings.letterSpacing + 'px';
             lineHeightInput.value = settings.lineHeight; lineHeightVal.textContent = settings.lineHeight.toFixed(2);
             speechRateInput.value = settings.speechRate; speechRateVal.textContent = settings.speechRate.toFixed(1) + 'x';
@@ -480,11 +511,11 @@
                 card.classList.toggle('reading', isCurrent && isReading);
                 const playBtn = card.querySelector('.play-msg-btn');
                 if (playBtn) {
+                    playBtn.classList.remove('playing', 'paused');
                     if (isCurrent && isReading) {
                         playBtn.classList.add(isPaused ? 'paused' : 'playing');
                         playBtn.textContent = isPaused ? '继续朗读' : '暂停朗读';
                     } else {
-                        playBtn.classList.remove('playing', 'paused');
                         playBtn.textContent = '朗读本条';
                     }
                 }
@@ -522,6 +553,7 @@
             const overlay = document.createElement('div');
             overlay.className = 'highlight-overlay';
             overlay.style.fontSize = settings.fontSize + 'px';
+            overlay.style.fontWeight = settings.fontWeight;
             overlay.style.letterSpacing = settings.letterSpacing + 'px';
             overlay.style.lineHeight = settings.lineHeight;
             overlay.innerHTML = before + `<mark>${match}</mark>` + after;
@@ -589,7 +621,6 @@
             });
         }
 
-        /* ========= 长按排序事件绑定 ========= */
         function bindReorderEvents() {
             document.querySelectorAll('[data-reorder]').forEach(el => {
                 el.addEventListener('mousedown', onReorderStart);
@@ -602,7 +633,6 @@
             const index = parseInt(target.dataset.reorder);
             if (isNaN(index)) return;
 
-            // 朗读或暂停时，禁止拖动当前正在朗读的那条消息
             if ((isReading || isPaused) && index === currentMsgIndex) {
                 showToast('正在朗读的消息不可移动');
                 return;
@@ -717,13 +747,11 @@
             if (sortState.pos === 'after' && to < from) to++;
             else if (sortState.pos === 'before' && to > from) to--;
 
-            // 朗读/暂停状态下，需保持当前句子的播放位置
             if (isReading || isPaused) {
                 const currentMsgId = messages[currentMsgIndex]?.id;
                 const currentSentenceIdx = readingQueue[queuePos]?.sentenceIndex;
                 const movedItem = messages.splice(from, 1)[0];
                 messages.splice(to, 0, movedItem);
-                // 重建队列并找回当前句子
                 readingQueue = buildQueue();
                 const newMsgIndex = messages.findIndex(m => m.id === currentMsgId);
                 if (newMsgIndex !== -1 && currentSentenceIdx !== undefined) {
@@ -1082,6 +1110,14 @@
         });
 
         fontSizeInput.oninput = () => { settings.fontSize = +fontSizeInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
+        fontWeightInput.oninput = () => {
+            const sliderVal = parseInt(fontWeightInput.value, 10);
+            settings.fontWeight = sliderToFontWeight(sliderVal);
+            applyCSS();
+            saveAll();
+            syncUI();
+            updateReadingHighlight();
+        };
         letterSpacingInput.oninput = () => { settings.letterSpacing = +letterSpacingInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
         lineHeightInput.oninput = () => { settings.lineHeight = +lineHeightInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
         speechRateInput.oninput = () => { settings.speechRate = +speechRateInput.value; saveAll(); syncUI(); };
@@ -1090,8 +1126,21 @@
         announceEndToggle.onchange = () => { settings.announceEnd = announceEndToggle.checked; saveAll(); };
         filterMarkdownToggle.onchange = () => { settings.filterMarkdown = filterMarkdownToggle.checked; saveAll(); };
 
-        btnResetFont.onclick = () => { Object.assign(settings, displayDefaults); applyCSS(); saveAll(); syncUI(); renderAll(); showToast('字体设置已恢复'); };
-        btnResetVoice.onclick = () => { Object.assign(settings, voiceDefaults); saveAll(); syncUI(); populateVoices(); showToast('语音设置已恢复'); };
+        btnResetFont.onclick = () => {
+            Object.assign(settings, displayDefaults);
+            applyCSS();
+            saveAll();
+            syncUI();
+            renderAll();
+            showToast('字体设置已恢复');
+        };
+        btnResetVoice.onclick = () => {
+            Object.assign(settings, voiceDefaults);
+            saveAll();
+            syncUI();
+            populateVoices();
+            showToast('语音设置已恢复');
+        };
 
         document.querySelectorAll('.theme-btn').forEach(btn => {
             btn.addEventListener('click', () => { settings.theme = btn.dataset.theme; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); });
