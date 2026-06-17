@@ -46,7 +46,6 @@
         .sentence-indicator { padding: 4px 16px 8px; font-size: 15px; color: #b45f06; background: #fff8e7; border-bottom: 1px solid #ffe0a3; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none; }
         .msg-card.reading .sentence-indicator { display: block; }
         .msg-btn { padding: 6px 12px; border-radius: 16px; border: 2px solid var(--border-color); background: var(--card-bg); cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; color: var(--text-color); }
-        .msg-btn:hover { background: var(--accent-light); }
         .msg-btn.delete-msg-btn { color: var(--danger); border-color: #f0d0d0; margin-left: auto; }
         .msg-btn.play-msg-btn.playing { background: #e07b20; color: #fff; border-color: #e07b20; }
         .msg-btn.play-msg-btn.paused { background: #5e8a7a; color: #fff; border-color: #5e8a7a; }
@@ -185,7 +184,7 @@
             <div class="modal-buttons">
                 <button class="theme-btn" id="modalReplace">替换</button>
                 <button class="btn btn-play" id="modalCreate">新建一条</button>
-				<button class="theme-btn" id="modalCancel">取消</button>
+                <button class="theme-btn" id="modalCancel">取消</button>
             </div>
         </div>
     </div>
@@ -352,6 +351,8 @@
                 overlay.className = 'highlight-overlay';
                 overlay.style.fontSize = settings.fontSize + 'px'; overlay.style.fontWeight = settings.fontWeight; overlay.style.letterSpacing = settings.letterSpacing + 'px'; overlay.style.lineHeight = settings.lineHeight;
                 overlay.innerHTML = before + `<mark>${match}</mark>` + after;
+                const scrollTop = ta.scrollTop;
+                overlay.style.top = (12 - scrollTop) + 'px';
                 body.appendChild(overlay);
             }
 
@@ -502,7 +503,19 @@
             btnExpandAll.onclick = expandAll;
             btnClearAll.onclick = () => { if (confirm('清空全部？')) { stopReading(); messages = []; msgId = 0; createMessage(''); saveAll(); renderAll(); updateStatus(); updatePlayBtn(); showToast('已清空并停止朗读'); } };
 
-            btnToggleSettings.addEventListener('click', () => { settingsCollapsed = !settingsCollapsed; settingsPanel.classList.toggle('collapsed', settingsCollapsed); mainArea.classList.toggle('expanded', settingsCollapsed); btnToggleSettings.textContent = settingsCollapsed ? '设置' : '收起设置'; syncExtraButtons(); });
+            btnToggleSettings.addEventListener('click', () => {
+                settingsCollapsed = !settingsCollapsed;
+                settingsPanel.classList.toggle('collapsed', settingsCollapsed);
+                mainArea.classList.toggle('expanded', settingsCollapsed);
+                btnToggleSettings.textContent = settingsCollapsed ? '设置' : '收起设置';
+                syncExtraButtons();
+                const onTransitionEnd = () => {
+                    settingsPanel.removeEventListener('transitionend', onTransitionEnd);
+                    document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta));
+                    updateReadingHighlight();
+                };
+                settingsPanel.addEventListener('transitionend', onTransitionEnd);
+            });
 
             async function loadVoices() {
                 availableVoices = speechSynthesis.getVoices();
@@ -535,7 +548,7 @@
             function splitSentences(text) {
                 text = text.replace(/\r/g, '');
                 const chars = Array.from(text), rawParts = []; let start = 0;
-                for (let i = 0; i < chars.length; i++) { if ('。！？.!?\n'.includes(chars[i])) { const part = chars.slice(start, i + 1).join(''); if (part.trim()) rawParts.push({ text: part, start: start }); start = i + 1; } }
+                for (let i = 0; i < chars.length; i++) { if ('。！？…!?\n'.includes(chars[i])) { const part = chars.slice(start, i + 1).join(''); if (part.trim()) rawParts.push({ text: part, start: start }); start = i + 1; } }
                 if (start < chars.length) { const rest = chars.slice(start).join(''); if (rest.trim()) rawParts.push({ text: rest, start: start }); }
                 const result = [];
                 rawParts.forEach(part => {
@@ -644,17 +657,17 @@
 
             window.addEventListener('beforeunload', function(e) { if (isReading || isPaused) { e.preventDefault(); e.returnValue = ''; } });
 
-            fontSizeInput.oninput = () => { settings.fontSize = +fontSizeInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
-            fontWeightInput.oninput = () => { const sliderVal = parseInt(fontWeightInput.value, 10); settings.fontWeight = sliderToFontWeight(sliderVal); applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
-            letterSpacingInput.oninput = () => { settings.letterSpacing = +letterSpacingInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
-            lineHeightInput.oninput = () => { settings.lineHeight = +lineHeightInput.value; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); };
+            fontSizeInput.oninput = () => { settings.fontSize = +fontSizeInput.value; applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
+            fontWeightInput.oninput = () => { const sliderVal = parseInt(fontWeightInput.value, 10); settings.fontWeight = sliderToFontWeight(sliderVal); applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
+            letterSpacingInput.oninput = () => { settings.letterSpacing = +letterSpacingInput.value; applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
+            lineHeightInput.oninput = () => { settings.lineHeight = +lineHeightInput.value; applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
             speechRateInput.oninput = () => { settings.speechRate = +speechRateInput.value; saveAll(); syncUI(); };
             voiceSelect.onchange = () => { settings.voiceURI = voiceSelect.value; saveAll(); };
             announcePrefixToggle.onchange = () => { settings.announcePrefix = announcePrefixToggle.checked; saveAll(); };
             announceEndToggle.onchange = () => { settings.announceEnd = announceEndToggle.checked; saveAll(); };
             filterMarkdownToggle.onchange = () => { settings.filterMarkdown = filterMarkdownToggle.checked; saveAll(); };
 
-            btnResetFont.onclick = () => { Object.assign(settings, displayDefaults); applyCSS(); saveAll(); syncUI(); renderAll(); showToast('字体设置已恢复'); };
+            btnResetFont.onclick = () => { Object.assign(settings, displayDefaults); applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); renderAll(); showToast('字体设置已恢复'); };
             btnResetVoice.onclick = () => { Object.assign(settings, voiceDefaults); saveAll(); syncUI(); populateVoices(); showToast('语音设置已恢复'); };
 
             document.querySelectorAll('.theme-btn').forEach(btn => { btn.addEventListener('click', () => { settings.theme = btn.dataset.theme; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); }); });
