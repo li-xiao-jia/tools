@@ -32,7 +32,7 @@
         .btn-toggle-settings { border-color: var(--border-color); font-size: 14px; padding: 8px 14px; white-space: nowrap; }
         .status-badge { font-size: 14px; color: var(--text-color); padding: 7px 14px; background: var(--card-bg); border-radius: 20px; font-weight: 500; opacity: 0.8; flex-basis: 100%; order: 1; }
         .status-badge.active { background: #fff8dd; color: #7a6200; font-weight: 700; }
-        .message-list { flex: 1; display: flex; flex-direction: column; gap: var(--paragraph-spacing); position: relative; }
+        .message-list { flex: 1; display: flex; flex-direction: column; gap: 16px; position: relative; }
         .msg-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); border: 2px solid transparent; transition: 0.2s; overflow: hidden; position: relative; z-index: 1; }
         .msg-card.reading { border-color: var(--accent-warm) !important; box-shadow: 0 0 0 7px rgba(240,192,64,0.18), var(--shadow-lg); }
         .msg-card.drag-over-card { border-color: var(--accent) !important; background: var(--accent-light) !important; }
@@ -49,12 +49,12 @@
         .msg-btn.delete-msg-btn { color: var(--danger); border-color: #f0d0d0; margin-left: auto; }
         .msg-btn.play-msg-btn.playing { background: #e07b20; color: #fff; border-color: #e07b20; }
         .msg-btn.play-msg-btn.paused { background: #5e8a7a; color: #fff; border-color: #5e8a7a; }
-        .msg-body { padding: 12px 16px; max-height: 80vh; overflow-y: auto; position: relative; }
-        .msg-body .highlight-overlay { position: absolute; top: 12px; left: 16px; right: 16px; pointer-events: none; white-space: pre-wrap; word-wrap: break-word; font-size: var(--font-size); font-weight: var(--font-weight); font-family: inherit; letter-spacing: var(--letter-spacing); line-height: var(--line-height); color: transparent; }
-        .highlight-overlay mark { background: var(--highlight-bg); color: transparent; border-radius: 4px; }
-        .msg-body textarea { width: 100%; border: none; background: transparent; font-size: var(--font-size); font-weight: var(--font-weight); font-family: inherit; color: var(--text-color); letter-spacing: var(--letter-spacing); line-height: var(--line-height); resize: none; outline: none; min-height: 50px; field-sizing: content; border-radius: 6px; position: relative; z-index: 1; }
+        .msg-body { padding: 12px 16px; max-height: 66vh; overflow-y: auto; position: relative; display: grid; }
+        .msg-body textarea { grid-area: 1/1; background: transparent; border: none; font-size: var(--font-size); font-weight: var(--font-weight); font-family: inherit; color: var(--text-color); letter-spacing: var(--letter-spacing); line-height: var(--line-height); resize: none; outline: none; min-height: 50px; field-sizing: content; z-index: 1; white-space: pre-wrap; word-wrap: break-word; padding: 0; }
         .first-empty .msg-body textarea { min-height: 120px; }
         .msg-body textarea[readonly] { cursor: not-allowed; opacity: 0.8; }
+        .highlight-overlay { grid-area: 1/1; pointer-events: none; white-space: pre-wrap; word-wrap: break-word; font-size: var(--font-size); font-weight: var(--font-weight); font-family: inherit; letter-spacing: var(--letter-spacing); line-height: var(--line-height); color: transparent; z-index: 0; padding: 0; }
+        .highlight-overlay mark { background: var(--highlight-bg); color: transparent; border-radius: 4px; }
         .btn-add-new { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px 20px; background: var(--card-bg); border: 3px dashed var(--border-color); border-radius: var(--radius); cursor: pointer; font-size: 15px; font-weight: 600; color: var(--text-color); margin-top: 12px; transition: 0.2s; opacity: 0.8; text-align: center; }
         .btn-add-new:hover { border-color: var(--accent); opacity: 1; }
         .bg-hint { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: clamp(32px, 8vw, 88px); font-weight: 800; color: var(--text-color); opacity: 0.07; pointer-events: none; z-index: 0; text-align: center; white-space: pre-line; padding: 40px; line-height: 1.3; }
@@ -84,6 +84,8 @@
         .setting-label-row span { font-size: 18px; }
         .setting-row { display: flex; gap: 16px; }
         .setting-row .setting-group { flex: 1; min-width: 0; overflow: hidden; }
+        .loop-row { display: flex; align-items: center; gap: 8px; }
+        .loop-row input[type="number"] { width: 60px; padding: 6px 8px; border-radius: 8px; border: 2px solid var(--border-color); font-size: var(--settings-font-size); background: var(--card-bg); color: var(--text-color); text-align: center; }
         .sort-ghost { position: fixed; pointer-events: none; z-index: 1000; background: var(--accent-light); border: 2px dashed var(--accent); border-radius: 8px; padding: 4px 16px; font-weight: 700; color: var(--accent); opacity: 0.9; transform: translate(-50%, -50%); }
         .sort-indicator { height: 4px; background: #4a7c6b; margin: 0 0; border-radius: 2px; pointer-events: none; position: relative; z-index: 5; }
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 300; display: flex; align-items: center; justify-content: center; }
@@ -94,12 +96,7 @@
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #3a3a3a; color: #fff; padding: 13px 26px; border-radius: 28px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 200; }
         .toast.show { opacity: 1; }
         @media (max-width: 900px) {
-            .app-container { flex-direction: column; }
-            .settings-panel { width: 100%; height: auto; position: relative; }
-            .settings-panel.collapsed { width: 100%; height: 0; padding: 0; }
-            .main-area.expanded { margin-right: 0; }
-            .toolbar-divider { display: none; }
-            .toolbar-spacer { display: none; }
+            .app-container { flex-direction: column; } .settings-panel { width: 100%; height: auto; position: relative; } .settings-panel.collapsed { width: 100%; height: 0; padding: 0; } .main-area.expanded { margin-right: 0; } .toolbar-divider { display: none; } .toolbar-spacer { display: none; }
         }
     </style>
 </head>
@@ -115,7 +112,7 @@
                 <span class="toolbar-divider"></span>
                 <button class="btn btn-tool danger btn-extra" id="btnClearAll">清空内容</button>
                 <button class="btn btn-tool btn-extra" id="btnCollapseAll">全折叠</button>
-                <button class="btn btn-tool btn-extra" id="btnExpandAll">全展开</button>                
+                <button class="btn btn-tool btn-extra" id="btnExpandAll">全展开</button>
                 <button class="btn btn-toggle-settings" id="btnToggleSettings" style="color: #1a73e8;">设置</button>
             </div>
             <div class="message-list" id="messageList">
@@ -133,45 +130,22 @@
                     </div>
                 </div>
                 <div class="setting-row">
-                    <div class="setting-group">
-                        <div class="setting-label-row"><label>字体大小：</label><span id="fontSizeVal">21px</span></div>
-                        <input type="range" id="fontSize" min="14" max="52" value="21">
-                    </div>
-                    <div class="setting-group">
-                        <div class="setting-label-row"><label>粗细：</label><span id="fontWeightVal">正常</span></div>
-                        <input type="range" id="fontWeight" min="1" max="3" value="2" step="1">
-                    </div>
+                    <div class="setting-group"><div class="setting-label-row"><label>字体大小：</label><span id="fontSizeVal">21px</span></div><input type="range" id="fontSize" min="14" max="52" value="21"></div>
+                    <div class="setting-group"><div class="setting-label-row"><label>粗细：</label><span id="fontWeightVal">正常</span></div><input type="range" id="fontWeight" min="1" max="3" value="2" step="1"></div>
                 </div>
                 <div class="setting-row">
-                    <div class="setting-group">
-                        <div class="setting-label-row"><label>字间距：</label><span id="letterSpacingVal">1.5px</span></div>
-                        <input type="range" id="letterSpacing" min="-2" max="14" value="1.5" step="0.5">
-                    </div>
-                    <div class="setting-group">
-                        <div class="setting-label-row"><label>行间距：</label><span id="lineHeightVal">1.8</span></div>
-                        <input type="range" id="lineHeight" min="1.2" max="3.8" value="1.8" step="0.05">
-                    </div>
+                    <div class="setting-group"><div class="setting-label-row"><label>字间距：</label><span id="letterSpacingVal">1.5px</span></div><input type="range" id="letterSpacing" min="-2" max="14" value="1.5" step="0.5"></div>
+                    <div class="setting-group"><div class="setting-label-row"><label>行间距：</label><span id="lineHeightVal">1.8</span></div><input type="range" id="lineHeight" min="1.2" max="3.8" value="1.8" step="0.05"></div>
                 </div>
                 <button class="btn-reset-settings" id="btnResetFont">恢复字体默认设置</button>
                 <hr>
-                <div class="setting-group">
-                    <div class="setting-label-row"><label>朗读语速：</label><span id="speechRateVal">1.2x</span></div>
-                    <input type="range" id="speechRate" min="0.4" max="5.0" value="1.2" step="0.05">
-                </div>
+                <div class="setting-group"><div class="setting-label-row"><label>朗读语速：</label><span id="speechRateVal">1.2x</span></div><input type="range" id="speechRate" min="0.4" max="5.0" value="1.2" step="0.05"></div>
                 <div class="setting-group"><label>搜索语音</label><input type="text" class="voice-search" id="voiceSearch" placeholder="输入关键词过滤"></div>
                 <div class="voice-group setting-group"><label>朗读语音</label><select id="voiceSelect" size="6"></select></div>
-                <div class="toggle-row">
-                    <span class="toggle-label">播报"开始朗读第几条"</span>
-                    <label class="toggle-switch"><input type="checkbox" id="announcePrefix" checked><span class="toggle-slider"></span></label>
-                </div>
-                <div class="toggle-row">
-                    <span class="toggle-label">【朗读结束】播报提示</span>
-                    <label class="toggle-switch"><input type="checkbox" id="announceEnd" checked><span class="toggle-slider"></span></label>
-                </div>
-                <div class="toggle-row">
-                    <span class="toggle-label">过滤 Markdown 格式符号</span>
-                    <label class="toggle-switch"><input type="checkbox" id="filterMarkdown" checked><span class="toggle-slider"></span></label>
-                </div>
+                <div class="toggle-row"><span class="toggle-label">播报开始/结束提示</span><label class="toggle-switch"><input type="checkbox" id="announceTips" checked><span class="toggle-slider"></span></label></div>
+                <div class="toggle-row"><span class="toggle-label">过滤 Markdown 格式符号</span><label class="toggle-switch"><input type="checkbox" id="filterMarkdown" checked><span class="toggle-slider"></span></label></div>
+                <div class="toggle-row"><span class="toggle-label">自动跟随高亮滚动</span><label class="toggle-switch"><input type="checkbox" id="autoScrollToggle"><span class="toggle-slider"></span></label></div>
+                <div class="loop-row"><span class="toggle-label">循环播放</span><input type="number" id="loopCountInput" min="0" value="0"><span>次</span><label class="toggle-switch"><input type="checkbox" id="loopLockToggle" checked><span class="toggle-slider"></span></label></div>
                 <button class="btn-reset-settings" id="btnResetVoice">恢复语音默认设置</button>
                 <p style="font-size:11px;color:var(--text-color);opacity:0.6;text-align:center;">制作人：<a href="https://space.bilibili.com/557858654" target="_blank" style="color:inherit;text-decoration:none;">励小加</a></p>
             </div>
@@ -179,7 +153,7 @@
     </div>
 
     <div id="modalOverlay" class="modal-overlay" style="display:none;">
-        <div class="modal-box">            
+        <div class="modal-box">
             <p id="modalMessage">是否把拖入内容替换原有文本</p>
             <div class="modal-buttons">
                 <button class="theme-btn" id="modalReplace">替换</button>
@@ -203,7 +177,9 @@
             const speechRateInput = $('speechRate'), speechRateVal = $('speechRateVal');
             const voiceSelect = $('voiceSelect'), voiceSearch = $('voiceSearch');
             const btnResetFont = $('btnResetFont'), btnResetVoice = $('btnResetVoice');
-            const announcePrefixToggle = $('announcePrefix'), announceEndToggle = $('announceEnd'), filterMarkdownToggle = $('filterMarkdown');
+            const announceTipsToggle = $('announceTips'), filterMarkdownToggle = $('filterMarkdown');
+            const autoScrollToggle = $('autoScrollToggle');
+            const loopCountInput = $('loopCountInput'), loopLockToggle = $('loopLockToggle');
             const btnToggleSettings = $('btnToggleSettings'), settingsPanel = $('settingsPanel');
             const modalOverlay = $('modalOverlay'), modalMessage = $('modalMessage');
             const modalReplace = $('modalReplace'), modalCreate = $('modalCreate'), modalCancel = $('modalCancel');
@@ -218,9 +194,11 @@
             let retryCount = 0;
             let settingsCollapsed = true;
             let pendingDropData = null;
+            let wakeLock = null;
+            let loopRemaining = 0;
 
             const displayDefaults = { fontSize: 21, fontWeight: 400, letterSpacing: 1.5, lineHeight: 1.8 };
-            const voiceDefaults = { speechRate: 1.2, voiceURI: '', announcePrefix: true, announceEnd: true, filterMarkdown: true };
+            const voiceDefaults = { speechRate: 1.2, voiceURI: '', announceTips: true, filterMarkdown: true, loopCount: 0, loopLocked: false, autoScroll: false };
             const defaultTheme = 'classic';
             let settings = { ...displayDefaults, paragraphSpacing: 16, ...voiceDefaults, theme: defaultTheme };
 
@@ -232,35 +210,38 @@
 
             let sortState = { active: false, sourceIndex: -1, sourceId: null, ghost: null, indicator: null, targetIndex: -1, pos: 'after', startX: 0, startY: 0, timer: null, moved: false };
 
+            async function requestWakeLock() { try { if (wakeLock) return; wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } catch (e) {} }
+            async function releaseWakeLock() { if (wakeLock) { try { await wakeLock.release(); } catch (e) {} wakeLock = null; } }
+
             function saveAll() { try { localStorage.setItem('msgReader_settings', JSON.stringify(settings)); localStorage.setItem('msgReader_messages', JSON.stringify({ messages, msgId })); } catch (e) {} }
             function loadAll() {
                 try {
                     const savedSettings = localStorage.getItem('msgReader_settings');
-                    if (savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
+                    if (savedSettings) { const parsed = JSON.parse(savedSettings); settings = { ...settings, ...parsed }; if (parsed.loopLocked === undefined) settings.loopLocked = false; }
                     const savedData = localStorage.getItem('msgReader_messages');
                     if (savedData) { const data = JSON.parse(savedData); messages = data.messages || []; msgId = data.msgId || 0; }
                 } catch (e) {}
-                if (settings.announcePrefix === undefined) settings.announcePrefix = true;
-                if (settings.announceEnd === undefined) settings.announceEnd = true;
+                if (settings.announceTips === undefined) settings.announceTips = !(settings.announcePrefix === false || settings.announceEnd === false);
+                delete settings.announcePrefix; delete settings.announceEnd;
                 if (settings.filterMarkdown === undefined) settings.filterMarkdown = true;
                 if (settings.fontWeight === undefined || !fontWeightOptions.includes(settings.fontWeight)) settings.fontWeight = 400;
+                if (settings.loopCount === undefined) settings.loopCount = 0;
+                if (settings.loopLocked === undefined) settings.loopLocked = false;
+                if (settings.autoScroll === undefined) settings.autoScroll = false;
             }
 
             function applyCSS() {
                 const root = document.documentElement;
-                root.style.setProperty('--font-size', settings.fontSize + 'px');
-                root.style.setProperty('--font-weight', settings.fontWeight);
-                root.style.setProperty('--letter-spacing', settings.letterSpacing + 'px');
-                root.style.setProperty('--line-height', settings.lineHeight);
-                root.style.setProperty('--paragraph-spacing', (settings.paragraphSpacing || 16) + 'px');
-                root.style.setProperty('--settings-font-size', '15px');
+                root.style.setProperty('--font-size', settings.fontSize + 'px'); root.style.setProperty('--font-weight', settings.fontWeight); root.style.setProperty('--letter-spacing', settings.letterSpacing + 'px'); root.style.setProperty('--line-height', settings.lineHeight);
+                root.style.setProperty('--paragraph-spacing', (settings.paragraphSpacing || 16) + 'px'); root.style.setProperty('--settings-font-size', '15px');
                 messageList.style.gap = (settings.paragraphSpacing || 16) + 'px';
-                document.querySelectorAll('.msg-body textarea').forEach(ta => { ta.style.fontSize = settings.fontSize + 'px'; ta.style.fontWeight = settings.fontWeight; ta.style.letterSpacing = settings.letterSpacing + 'px'; ta.style.lineHeight = settings.lineHeight; });
                 document.body.className = 'theme-' + (settings.theme || defaultTheme);
                 document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === settings.theme));
             }
 
             function autoResize(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+
+            function updateLoopInputState() { loopCountInput.disabled = settings.loopLocked || (isReading && !isPaused); }
 
             function syncUI() {
                 fontSizeInput.value = settings.fontSize; fontSizeVal.textContent = settings.fontSize + 'px';
@@ -269,9 +250,12 @@
                 lineHeightInput.value = settings.lineHeight; lineHeightVal.textContent = settings.lineHeight.toFixed(2);
                 speechRateInput.value = settings.speechRate; speechRateVal.textContent = settings.speechRate.toFixed(1) + 'x';
                 if (voiceSelect.value !== settings.voiceURI && settings.voiceURI) voiceSelect.value = settings.voiceURI;
-                announcePrefixToggle.checked = settings.announcePrefix;
-                announceEndToggle.checked = settings.announceEnd;
+                announceTipsToggle.checked = settings.announceTips;
                 filterMarkdownToggle.checked = settings.filterMarkdown;
+                loopCountInput.value = settings.loopCount;
+                loopLockToggle.checked = !settings.loopLocked;
+                autoScrollToggle.checked = settings.autoScroll;
+                updateLoopInputState();
             }
 
             function syncExtraButtons() { document.querySelectorAll('.btn-extra').forEach(btn => { btn.style.display = settingsCollapsed ? 'none' : 'inline-flex'; }); }
@@ -280,11 +264,11 @@
 
             function createMessage(content = '') { messages.push({ id: ++msgId, content, collapsed: false }); renderAll(); updateStatus(); saveAll(); scrollToLastMessage(); }
 
-            function deleteMsg(id) {
-                if (isReading && currentMsgIndex === messages.findIndex(m => m.id === id)) { stopReading(); showToast('已停止朗读，消息已删除'); }
-                messages = messages.filter(m => m.id !== id);
-                if (isReading || isPaused) rebuildQueue();
-                renderAll(); updateStatus(); saveAll();
+            function clearOrDeleteMsg(id) {
+                const index = messages.findIndex(m => m.id === id); if (index === -1) return;
+                if (messages[index].content.trim() === '') { if (isReading && currentMsgIndex === index) { stopReading(); showToast('已停止朗读，消息已删除'); } messages.splice(index, 1); }
+                else { if (isReading && currentMsgIndex === index) { stopReading(); showToast('已停止朗读，消息已清空'); } messages[index].content = ''; }
+                if (isReading || isPaused) rebuildQueue(); renderAll(); updateStatus(); saveAll();
             }
 
             function toggleCollapse(id) { const m = messages.find(m => m.id === id); if (m) { m.collapsed = !m.collapsed; renderAll(); updateStatus(); saveAll(); } }
@@ -305,19 +289,10 @@
                     const isEmptyFirst = (i === 0 && messages.length === 1 && !m.content);
                     const placeholderAttr = (i === 0) ? ' placeholder="长按👆“第几条”可调整顺序。把文字拖入框内，可替换或新建。"' : '';
                     return `<div class="msg-card${m.collapsed?' collapsed':''}${isCurrent?' reading':''}${isEmptyFirst?' first-empty':''}" data-id="${m.id}" data-index="${i}">
-                    <div class="msg-header">
-                        <span class="msg-number" data-reorder="${i}">第${i+1}条</span>
-                        <button class="msg-btn" data-toggle="${m.id}">${m.collapsed?'展开':'折叠'}</button>
-                        <button class="${playBtnClass}" data-play="${i}">${(isCurrent && isReading) ? (isPaused ? '继续朗读' : '暂停朗读') : '朗读本条'}</button>
-                        <button class="msg-btn delete-msg-btn" data-delete="${m.id}">双击删除</button>
-                    </div>
-                    <div class="sentence-indicator">🔊 ${escapeHtml(currentSentenceText)}</div>
-                    <div class="msg-preview">${escapeHtml(preview)}</div>
-                    <div class="msg-body"><textarea data-id="${m.id}"${readonlyAttr}${placeholderAttr}>${escapeHtml(m.content)}</textarea></div>
-                </div>`;
+                    <div class="msg-header"><span class="msg-number" data-reorder="${i}">第${i+1}条</span><button class="msg-btn" data-toggle="${m.id}">${m.collapsed?'展开':'折叠'}</button><button class="${playBtnClass}" data-play="${i}">${(isCurrent && isReading) ? (isPaused ? '继续朗读' : '暂停朗读') : '朗读本条'}</button><button class="msg-btn delete-msg-btn" data-delete="${m.id}">双击清空</button></div>
+                    <div class="sentence-indicator">🔊 ${escapeHtml(currentSentenceText)}</div><div class="msg-preview">${escapeHtml(preview)}</div><div class="msg-body"><textarea data-id="${m.id}"${readonlyAttr}${placeholderAttr}>${escapeHtml(m.content)}</textarea><div class="highlight-overlay"></div></div></div>`;
                 }).join('');
-                bindAllEvents(); bindReorderEvents(); applyCSS(); updateReadingHighlight();
-                setTimeout(() => document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)), 10);
+                bindAllEvents(); bindReorderEvents(); applyCSS(); updateReadingHighlight(); setTimeout(() => document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)), 10);
             }
 
             function updateReadingUI() {
@@ -325,35 +300,57 @@
                     const idx = parseInt(card.dataset.index), isCurrent = idx === currentMsgIndex;
                     card.classList.toggle('reading', isCurrent && isReading);
                     const playBtn = card.querySelector('.play-msg-btn');
-                    if (playBtn) {
-                        playBtn.classList.remove('playing', 'paused');
-                        if (isCurrent && isReading) { playBtn.classList.add(isPaused ? 'paused' : 'playing'); playBtn.textContent = isPaused ? '继续朗读' : '暂停朗读'; }
-                        else playBtn.textContent = '朗读本条';
-                    }
-                    const ta = card.querySelector('textarea');
-                    if (ta) { if (isCurrent && isReading && !isPaused) ta.setAttribute('readonly', ''); else ta.removeAttribute('readonly'); }
+                    if (playBtn) { playBtn.classList.remove('playing', 'paused'); if (isCurrent && isReading) { playBtn.classList.add(isPaused ? 'paused' : 'playing'); playBtn.textContent = isPaused ? '继续朗读' : '暂停朗读'; } else playBtn.textContent = '朗读本条'; }
+                    const ta = card.querySelector('textarea'); if (ta) { if (isCurrent && isReading && !isPaused) ta.setAttribute('readonly', ''); else ta.removeAttribute('readonly'); }
                 });
                 document.querySelectorAll('.sentence-indicator').forEach(ind => { const card = ind.closest('.msg-card'); const idx = parseInt(card.dataset.index); ind.textContent = '🔊 ' + (idx === currentMsgIndex ? currentSentenceText : ''); });
                 updateReadingHighlight();
             }
 
             function updateReadingHighlight() {
-                document.querySelectorAll('.highlight-overlay').forEach(el => el.remove());
+                document.querySelectorAll('.highlight-overlay').forEach(el => el.innerHTML = '');
+                if (!isReading && !isPaused) return;
                 if (currentMsgIndex < 0 || !currentSentenceText) return;
-                const card = document.querySelector(`.msg-card[data-index="${currentMsgIndex}"]`); if (!card) return;
-                const ta = card.querySelector('textarea'); if (!ta) return;
+                const card = document.querySelector(`.msg-card[data-index="${currentMsgIndex}"]`);
+                if (!card) return;
+                const overlay = card.querySelector('.highlight-overlay');
+                if (!overlay) return;
+                const ta = card.querySelector('textarea');
+                if (!ta) return;
                 const fullText = ta.value;
                 let start = currentSentenceStart;
                 if (start < 0 || start >= fullText.length || fullText.substring(start, start + currentSentenceText.length) !== currentSentenceText) start = fullText.indexOf(currentSentenceText);
                 if (start === -1) return;
-                const before = escapeHtml(fullText.substring(0, start)), match = escapeHtml(currentSentenceText), after = escapeHtml(fullText.substring(start + currentSentenceText.length));
-                const body = card.querySelector('.msg-body'), overlay = document.createElement('div');
-                overlay.className = 'highlight-overlay';
-                overlay.style.fontSize = settings.fontSize + 'px'; overlay.style.fontWeight = settings.fontWeight; overlay.style.letterSpacing = settings.letterSpacing + 'px'; overlay.style.lineHeight = settings.lineHeight;
+                const before = escapeHtml(fullText.substring(0, start));
+                const match = escapeHtml(currentSentenceText);
+                const after = escapeHtml(fullText.substring(start + currentSentenceText.length));
                 overlay.innerHTML = before + `<mark>${match}</mark>` + after;
-                const scrollTop = ta.scrollTop;
-                overlay.style.top = (12 - scrollTop) + 'px';
-                body.appendChild(overlay);
+            }
+
+            function autoScrollToCurrent() {
+                if (!settings.autoScroll || currentMsgIndex < 0) return;
+                const m = messages[currentMsgIndex];
+                if (m && m.collapsed) {
+                    m.collapsed = false;
+                    const card = document.querySelector(`.msg-card[data-index="${currentMsgIndex}"]`);
+                    if (card) {
+                        card.classList.remove('collapsed');
+                        const btn = card.querySelector('[data-toggle]');
+                        if (btn) btn.textContent = '折叠';
+                        const ta = card.querySelector('textarea');
+                        if (ta) autoResize(ta);
+                    }
+                    saveAll();
+                }
+                const card = document.querySelector(`.msg-card[data-index="${currentMsgIndex}"]`);
+                if (!card) return;
+                const msgBody = card.querySelector('.msg-body');
+                if (!msgBody) return;
+                const mark = msgBody.querySelector('mark');
+                if (!mark) return;
+                card.scrollIntoView({ behavior: 'instant', block: 'center' });
+                const targetScrollTop = mark.offsetTop - msgBody.clientHeight / 2;
+                msgBody.scrollTop = Math.max(0, Math.min(targetScrollTop, msgBody.scrollHeight - msgBody.clientHeight));
             }
 
             function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -361,7 +358,7 @@
             function bindAllEvents() {
                 document.querySelectorAll('[data-toggle]').forEach(el => el.onclick = e => { e.stopPropagation(); toggleCollapse(+el.dataset.toggle); });
                 document.querySelectorAll('[data-play]').forEach(el => el.onclick = e => { e.stopPropagation(); const idx = parseInt(el.dataset.play); if (currentMsgIndex === idx && isReading) { isPaused ? resumeReading() : pauseReading(); } else playSingle(idx); });
-                document.querySelectorAll('[data-delete]').forEach(el => el.ondblclick = e => { e.stopPropagation(); deleteMsg(+el.dataset.delete); });
+                document.querySelectorAll('[data-delete]').forEach(el => el.ondblclick = e => { e.stopPropagation(); clearOrDeleteMsg(+el.dataset.delete); });
                 document.querySelectorAll('.msg-body textarea').forEach(ta => { ta.oninput = () => { const m = messages.find(m => m.id === +ta.dataset.id); if (m) { m.content = ta.value; saveAll(); } autoResize(ta); }; autoResize(ta); });
                 document.querySelectorAll('.msg-card').forEach(card => {
                     card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over-card'); });
@@ -370,10 +367,8 @@
                         e.preventDefault(); e.stopPropagation(); card.classList.remove('drag-over-card');
                         const targetId = parseInt(card.dataset.id), targetMsg = messages.find(m => m.id === targetId);
                         const files = e.dataTransfer.files, text = getDropText(e);
-                        if (files && files.length > 0) {
-                            if (files.length > 1) { Array.from(files).forEach(file => { readFile(file, content => { createMessage(content); }); }); renderAll(); updateStatus(); showToast(`已新增 ${files.length} 条消息`); }
-                            else { readFile(files[0], content => { if (targetMsg && !targetMsg.content.trim()) { updateMsg(targetId, content); renderAll(); showToast('消息已直接填入'); saveAll(); } else showDropModal(targetId, content); }); }
-                        } else if (text) { if (targetMsg && !targetMsg.content.trim()) { updateMsg(targetId, text); renderAll(); showToast('消息已直接填入'); saveAll(); } else showDropModal(targetId, text); }
+                        if (files && files.length > 0) { if (files.length > 1) { Array.from(files).forEach(file => { readFile(file, content => { createMessage(content); }); }); renderAll(); updateStatus(); showToast(`已新增 ${files.length} 条消息`); } else { readFile(files[0], content => { if (targetMsg && !targetMsg.content.trim()) { updateMsg(targetId, content); renderAll(); showToast('消息已直接填入'); saveAll(); } else showDropModal(targetId, content); }); } }
+                        else if (text) { if (targetMsg && !targetMsg.content.trim()) { updateMsg(targetId, text); renderAll(); showToast('消息已直接填入'); saveAll(); } else showDropModal(targetId, text); }
                     });
                 });
             }
@@ -381,281 +376,91 @@
             function bindReorderEvents() { document.querySelectorAll('[data-reorder]').forEach(el => { el.addEventListener('mousedown', onReorderStart); el.addEventListener('touchstart', onReorderStart, { passive: false }); }); }
 
             function onReorderStart(e) {
-                const target = e.currentTarget, index = parseInt(target.dataset.reorder);
-                if (isNaN(index)) return;
+                const target = e.currentTarget, index = parseInt(target.dataset.reorder); if (isNaN(index)) return;
                 if ((isReading || isPaused) && index === currentMsgIndex) { showToast('正在朗读的消息不可移动'); return; }
-                e.preventDefault();
-                const point = e.touches ? e.touches[0] : e;
-                sortState.sourceIndex = index; sortState.sourceId = messages[index].id;
-                sortState.startX = point.clientX; sortState.startY = point.clientY;
-                sortState.moved = false; sortState.active = false;
-                clearTimeout(sortState.timer);
-                sortState.timer = setTimeout(() => {
-                    sortState.active = true;
-                    createGhost(point.clientX, point.clientY);
-                    document.addEventListener('mousemove', onReorderMove);
-                    document.addEventListener('mouseup', onReorderEnd);
-                    document.addEventListener('touchmove', onReorderMove, { passive: false });
-                    document.addEventListener('touchend', onReorderEnd);
-                    document.body.style.userSelect = 'none';
-                }, 300);
+                e.preventDefault(); const point = e.touches ? e.touches[0] : e;
+                sortState.sourceIndex = index; sortState.sourceId = messages[index].id; sortState.startX = point.clientX; sortState.startY = point.clientY; sortState.moved = false; sortState.active = false;
+                clearTimeout(sortState.timer); sortState.timer = setTimeout(() => { sortState.active = true; createGhost(point.clientX, point.clientY); document.addEventListener('mousemove', onReorderMove); document.addEventListener('mouseup', onReorderEnd); document.addEventListener('touchmove', onReorderMove, { passive: false }); document.addEventListener('touchend', onReorderEnd); document.body.style.userSelect = 'none'; }, 300);
             }
 
             function createGhost(x, y) { const ghost = document.createElement('div'); ghost.className = 'sort-ghost'; ghost.textContent = `第${sortState.sourceIndex + 1}条`; document.body.appendChild(ghost); ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; sortState.ghost = ghost; }
 
             function onReorderMove(e) {
-                if (!sortState.active) return;
-                e.preventDefault();
-                const point = e.touches ? e.touches[0] : e;
+                if (!sortState.active) return; e.preventDefault(); const point = e.touches ? e.touches[0] : e;
                 if (sortState.ghost) { sortState.ghost.style.left = point.clientX + 'px'; sortState.ghost.style.top = point.clientY + 'px'; }
-                const cards = [...messageList.querySelectorAll('.msg-card')];
-                let targetIndex = -1, pos = 'after';
-                for (let i = 0; i < cards.length; i++) {
-                    const rect = cards[i].getBoundingClientRect();
-                    if (point.clientY < rect.top + rect.height / 2) { targetIndex = i; pos = 'before'; break; }
-                    else if (i === cards.length - 1 || point.clientY < cards[i + 1].getBoundingClientRect().top) { targetIndex = i; pos = 'after'; break; }
-                }
-                if (targetIndex !== -1) {
-                    if (targetIndex === sortState.sourceIndex) { clearIndicator(); sortState.targetIndex = -1; }
-                    else { showIndicator(cards[targetIndex], pos); sortState.targetIndex = targetIndex; sortState.pos = pos; }
-                }
+                const cards = [...messageList.querySelectorAll('.msg-card')]; let targetIndex = -1, pos = 'after';
+                for (let i = 0; i < cards.length; i++) { const rect = cards[i].getBoundingClientRect(); if (point.clientY < rect.top + rect.height / 2) { targetIndex = i; pos = 'before'; break; } else if (i === cards.length - 1 || point.clientY < cards[i + 1].getBoundingClientRect().top) { targetIndex = i; pos = 'after'; break; } }
+                if (targetIndex !== -1) { if (targetIndex === sortState.sourceIndex) { clearIndicator(); sortState.targetIndex = -1; } else { showIndicator(cards[targetIndex], pos); sortState.targetIndex = targetIndex; sortState.pos = pos; } }
             }
 
             function showIndicator(card, pos) { clearIndicator(); const indicator = document.createElement('div'); indicator.className = 'sort-indicator'; if (pos === 'before') card.parentNode.insertBefore(indicator, card); else card.parentNode.insertBefore(indicator, card.nextSibling); sortState.indicator = indicator; }
             function clearIndicator() { if (sortState.indicator) { sortState.indicator.remove(); sortState.indicator = null; } }
 
             function onReorderEnd(e) {
-                clearTimeout(sortState.timer);
-                document.removeEventListener('mousemove', onReorderMove); document.removeEventListener('mouseup', onReorderEnd);
-                document.removeEventListener('touchmove', onReorderMove); document.removeEventListener('touchend', onReorderEnd);
-                document.body.style.userSelect = '';
-                if (sortState.ghost) { sortState.ghost.remove(); sortState.ghost = null; }
-                clearIndicator();
+                clearTimeout(sortState.timer); document.removeEventListener('mousemove', onReorderMove); document.removeEventListener('mouseup', onReorderEnd); document.removeEventListener('touchmove', onReorderMove); document.removeEventListener('touchend', onReorderEnd); document.body.style.userSelect = '';
+                if (sortState.ghost) { sortState.ghost.remove(); sortState.ghost = null; } clearIndicator();
                 if (!sortState.active || sortState.targetIndex === -1 || sortState.sourceIndex === sortState.targetIndex) { resetSortState(); return; }
-                const from = sortState.sourceIndex; let to = sortState.targetIndex;
-                if (sortState.pos === 'after' && to < from) to++; else if (sortState.pos === 'before' && to > from) to--;
-                if (isReading || isPaused) {
-                    const currentMsgId = messages[currentMsgIndex]?.id, currentSentenceIdx = readingQueue[queuePos]?.sentenceIndex;
-                    const movedItem = messages.splice(from, 1)[0]; messages.splice(to, 0, movedItem);
-                    readingQueue = buildQueue();
-                    const newMsgIndex = messages.findIndex(m => m.id === currentMsgId);
-                    if (newMsgIndex !== -1 && currentSentenceIdx !== undefined) {
-                        const newPos = readingQueue.findIndex(item => item.msgIndex === newMsgIndex && item.sentenceIndex === currentSentenceIdx);
-                        if (newPos !== -1) queuePos = newPos;
-                        else { const firstPos = readingQueue.findIndex(item => item.msgIndex === newMsgIndex); queuePos = firstPos !== -1 ? firstPos : 0; }
-                        currentMsgIndex = newMsgIndex;
-                    } else { currentMsgIndex = newMsgIndex; queuePos = 0; }
-                } else { const movedItem = messages.splice(from, 1)[0]; messages.splice(to, 0, movedItem); }
+                const from = sortState.sourceIndex; let to = sortState.targetIndex; if (sortState.pos === 'after' && to < from) to++; else if (sortState.pos === 'before' && to > from) to--;
+                if (isReading || isPaused) { const currentMsgId = messages[currentMsgIndex]?.id, currentSentenceIdx = readingQueue[queuePos]?.sentenceIndex; const movedItem = messages.splice(from, 1)[0]; messages.splice(to, 0, movedItem); readingQueue = buildQueue(); const newMsgIndex = messages.findIndex(m => m.id === currentMsgId); if (newMsgIndex !== -1 && currentSentenceIdx !== undefined) { const newPos = readingQueue.findIndex(item => item.msgIndex === newMsgIndex && item.sentenceIndex === currentSentenceIdx); if (newPos !== -1) queuePos = newPos; else { const firstPos = readingQueue.findIndex(item => item.msgIndex === newMsgIndex); queuePos = firstPos !== -1 ? firstPos : 0; } currentMsgIndex = newMsgIndex; } else { currentMsgIndex = newMsgIndex; queuePos = 0; } }
+                else { const movedItem = messages.splice(from, 1)[0]; messages.splice(to, 0, movedItem); }
                 resetSortState(); renderAll(); updateStatus(); saveAll(); showToast('排序已更新');
             }
 
             function resetSortState() { sortState.active = false; sortState.sourceIndex = -1; sortState.sourceId = null; sortState.targetIndex = -1; sortState.pos = 'after'; sortState.moved = false; }
 
-            function showDropModal(cardId, content) {
-                if (isReading && !isPaused && currentMsgIndex === messages.findIndex(m => m.id === cardId)) { showToast('请先暂停再编辑正在朗读的消息'); return; }
-                pendingDropData = { cardId, content };
-                const idx = messages.findIndex(m => m.id === cardId);
-                modalMessage.textContent = '是否把拖入内容替换 第' + (idx + 1) + '条 的原有文本';
-                modalOverlay.style.display = 'flex';
-            }
-
+            function showDropModal(cardId, content) { if (isReading && !isPaused && currentMsgIndex === messages.findIndex(m => m.id === cardId)) { showToast('请先暂停再编辑正在朗读的消息'); return; } pendingDropData = { cardId, content }; const idx = messages.findIndex(m => m.id === cardId); modalMessage.textContent = '是否把拖入内容替换 第' + (idx + 1) + '条 的原有文本'; modalOverlay.style.display = 'flex'; }
             modalReplace.onclick = () => { if (pendingDropData) { updateMsg(pendingDropData.cardId, pendingDropData.content); renderAll(); showToast('消息已替换'); saveAll(); } closeModal(); };
             modalCreate.onclick = () => { if (pendingDropData) { createMessage(pendingDropData.content); showToast('已新建一条消息'); } closeModal(); };
             modalCancel.onclick = closeModal;
-
             function closeModal() { modalOverlay.style.display = 'none'; pendingDropData = null; }
 
-            function updateStatus() {
-                msgCountEl.textContent = messages.length;
-                let text = '就绪 · 共 ' + messages.length + ' 条';
-                if (isReading && !isPaused && currentMsgIndex >= 0) text = `正在朗读第${currentMsgIndex+1}条 · 共${messages.length}条`;
-                else if (isPaused) text = `已暂停 · 共${messages.length}条`;
-                statusBadge.innerHTML = text.replace(/(\d+)/g, '<strong>$1</strong>');
-                statusBadge.classList.toggle('active', isReading || isPaused);
-            }
-
-            function updatePlayBtn() {
-                if (isReading && !isPaused) { btnPlay.textContent = '⏸️ 暂停朗读'; btnPlay.className = 'btn btn-play playing'; }
-                else if (isPaused) { btnPlay.textContent = '▶️ 继续朗读'; btnPlay.className = 'btn btn-play paused'; }
-                else { btnPlay.textContent = '▶️ 开始朗读'; btnPlay.className = 'btn btn-play'; }
-            }
+            function updateStatus() { msgCountEl.textContent = messages.length; let text = '就绪 · 共 ' + messages.length + ' 条'; if (isReading && !isPaused && currentMsgIndex >= 0) text = `正在朗读第${currentMsgIndex+1}条 · 共${messages.length}条`; else if (isPaused) text = `已暂停 · 共${messages.length}条`; statusBadge.innerHTML = text.replace(/(\d+)/g, '<strong>$1</strong>'); statusBadge.classList.toggle('active', isReading || isPaused); }
+            function updatePlayBtn() { if (isReading && !isPaused) { btnPlay.textContent = '⏸️ 暂停朗读'; btnPlay.className = 'btn btn-play playing'; } else if (isPaused) { btnPlay.textContent = '▶️ 继续朗读'; btnPlay.className = 'btn btn-play paused'; } else { btnPlay.textContent = '▶️ 开始朗读'; btnPlay.className = 'btn btn-play'; } }
 
             function getDropText(e) { let text = e.dataTransfer.getData('text/plain'); if (!text?.trim()) { const h = e.dataTransfer.getData('text/html'); if (h) { const d = document.createElement('div'); d.innerHTML = h; text = d.textContent; } } return text?.trim() || null; }
-
             function readFile(file, cb) { if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.csv')) { const r = new FileReader(); r.onload = () => cb(r.result); r.readAsText(file, 'UTF-8'); } else showToast('仅支持文本文件'); }
-
             function updateMsg(id, content) { const m = messages.find(m => m.id === id); if (m) m.content = content; }
 
             mainArea.addEventListener('dragover', e => { e.preventDefault(); if (!e.target.closest('.msg-card')) btnAddNew.classList.add('drag-over'); });
             mainArea.addEventListener('dragleave', () => { btnAddNew.classList.remove('drag-over'); });
-            mainArea.addEventListener('drop', e => {
-                btnAddNew.classList.remove('drag-over');
-                if (e.target.closest('.msg-card')) return;
-                e.preventDefault();
-                const files = e.dataTransfer.files;
-                if (files && files.length > 0) { Array.from(files).forEach(file => { readFile(file, content => { createMessage(content); }); }); renderAll(); updateStatus(); showToast(`已新增 ${files.length} 条消息`); }
-                else { const text = getDropText(e); if (text) { createMessage(text); renderAll(); updateStatus(); showToast('已新增消息'); } }
-            });
+            mainArea.addEventListener('drop', e => { btnAddNew.classList.remove('drag-over'); if (e.target.closest('.msg-card')) return; e.preventDefault(); const files = e.dataTransfer.files; if (files && files.length > 0) { Array.from(files).forEach(file => { readFile(file, content => { createMessage(content); }); }); renderAll(); updateStatus(); showToast(`已新增 ${files.length} 条消息`); } else { const text = getDropText(e); if (text) { createMessage(text); renderAll(); updateStatus(); showToast('已新增消息'); } } });
 
-            btnAddNew.onclick = () => { createMessage(''); renderAll(); updateStatus(); };
-            btnAddTop.onclick = () => { createMessage(''); renderAll(); updateStatus(); };
-            btnCollapseAll.onclick = collapseAll;
-            btnExpandAll.onclick = expandAll;
+            btnAddNew.onclick = () => { createMessage(''); renderAll(); updateStatus(); setTimeout(() => { const ta = messageList.querySelector('.msg-card:last-of-type textarea'); if (ta) ta.focus(); }, 100); };
+            btnAddTop.onclick = () => { createMessage(''); renderAll(); updateStatus(); setTimeout(() => { const ta = messageList.querySelector('.msg-card:last-of-type textarea'); if (ta) ta.focus(); }, 100); };
+            btnCollapseAll.onclick = collapseAll; btnExpandAll.onclick = expandAll;
             btnClearAll.onclick = () => { if (confirm('清空全部？')) { stopReading(); messages = []; msgId = 0; createMessage(''); saveAll(); renderAll(); updateStatus(); updatePlayBtn(); showToast('已清空并停止朗读'); } };
 
-            btnToggleSettings.addEventListener('click', () => {
-                settingsCollapsed = !settingsCollapsed;
-                settingsPanel.classList.toggle('collapsed', settingsCollapsed);
-                mainArea.classList.toggle('expanded', settingsCollapsed);
-                btnToggleSettings.textContent = settingsCollapsed ? '设置' : '收起设置';
-                syncExtraButtons();
-                const onTransitionEnd = () => {
-                    settingsPanel.removeEventListener('transitionend', onTransitionEnd);
-                    document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta));
-                    updateReadingHighlight();
-                };
-                settingsPanel.addEventListener('transitionend', onTransitionEnd);
-            });
+            btnToggleSettings.addEventListener('click', () => { settingsCollapsed = !settingsCollapsed; settingsPanel.classList.toggle('collapsed', settingsCollapsed); mainArea.classList.toggle('expanded', settingsCollapsed); btnToggleSettings.textContent = settingsCollapsed ? '设置' : '收起设置'; syncExtraButtons(); const onTransitionEnd = () => { settingsPanel.removeEventListener('transitionend', onTransitionEnd); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); updateReadingHighlight(); }; settingsPanel.addEventListener('transitionend', onTransitionEnd); });
 
-            async function loadVoices() {
-                availableVoices = speechSynthesis.getVoices();
-                if (!availableVoices.length) await new Promise(r => speechSynthesis.addEventListener('voiceschanged', r, { once: true }));
-                availableVoices = speechSynthesis.getVoices();
-                buildVoiceOpts(); setDefaultVoice(); populateVoices();
-            }
-
-            function buildVoiceOpts() {
-                const pref = [], oth = [];
-                availableVoices.forEach(v => (v.lang || '').toLowerCase().startsWith('zh') ? pref.push(v) : oth.push(v));
-                allVoiceOptions = [...pref.sort((a, b) => a.lang.startsWith('zh-CN') ? -1 : 1), ...oth].map(v => ({ uri: v.voiceURI, name: v.name, lang: v.lang || '未知' }));
-            }
-
+            async function loadVoices() { availableVoices = speechSynthesis.getVoices(); if (!availableVoices.length) await new Promise(r => speechSynthesis.addEventListener('voiceschanged', r, { once: true })); availableVoices = speechSynthesis.getVoices(); buildVoiceOpts(); setDefaultVoice(); populateVoices(); }
+            function buildVoiceOpts() { const pref = [], oth = []; availableVoices.forEach(v => (v.lang || '').toLowerCase().startsWith('zh') ? pref.push(v) : oth.push(v)); allVoiceOptions = [...pref.sort((a, b) => a.lang.startsWith('zh-CN') ? -1 : 1), ...oth].map(v => ({ uri: v.voiceURI, name: v.name, lang: v.lang || '未知' })); }
             function setDefaultVoice() { if (settings.voiceURI) return; const target = availableVoices.find(v => v.name.includes('Xiaoxiao') && v.name.includes('Online') && v.name.includes('Natural')); if (target) { settings.voiceURI = target.voiceURI; saveAll(); } }
-
-            function populateVoices() {
-                const sel = voiceSelect; sel.innerHTML = '<option value="">自动选择中文</option>';
-                allVoiceOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o.uri; opt.textContent = `${o.name} (${o.lang})`; opt.title = opt.textContent; if (o.uri === settings.voiceURI) opt.selected = true; sel.appendChild(opt); });
-            }
-            voiceSearch.oninput = () => {
-                const f = voiceSearch.value.toLowerCase(), sel = voiceSelect; sel.innerHTML = '<option value="">自动选择中文</option>';
-                allVoiceOptions.filter(o => o.name.toLowerCase().includes(f) || o.lang.toLowerCase().includes(f)).forEach(o => { const opt = document.createElement('option'); opt.value = o.uri; opt.textContent = `${o.name} (${o.lang})`; sel.appendChild(opt); });
-            };
+            function populateVoices() { const sel = voiceSelect; sel.innerHTML = '<option value="">自动选择中文</option>'; allVoiceOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o.uri; opt.textContent = `${o.name} (${o.lang})`; opt.title = opt.textContent; if (o.uri === settings.voiceURI) opt.selected = true; sel.appendChild(opt); }); }
+            voiceSearch.oninput = () => { const f = voiceSearch.value.toLowerCase(), sel = voiceSelect; sel.innerHTML = '<option value="">自动选择中文</option>'; allVoiceOptions.filter(o => o.name.toLowerCase().includes(f) || o.lang.toLowerCase().includes(f)).forEach(o => { const opt = document.createElement('option'); opt.value = o.uri; opt.textContent = `${o.name} (${o.lang})`; sel.appendChild(opt); }); };
 
             function getBestVoice() { if (settings.voiceURI && availableVoices.length) return availableVoices.find(v => v.voiceURI === settings.voiceURI) || null; return availableVoices.find(v => v.lang.startsWith('zh-CN')) || availableVoices[0]; }
+            function cleanTextForSpeech(text) { let cleaned = text; if (settings.filterMarkdown) cleaned = cleaned.replace(/[#*_~`]/g, ''); return cleaned.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{200B}-\u{200F}\u{FEFF}]/gu, '').replace(/\s+/g, ' ').trim(); }
 
-            function cleanTextForSpeech(text) { let cleaned = text; if (settings.filterMarkdown) cleaned = cleaned.replace(/[#*_~`]/g, ''); return cleaned.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{200B}-\u{200F}\u{FEFF}]/gu, '').replace(/\s+/g, ' ').trim(); }
+            function splitSentences(text) { text = text.replace(/\r/g, ''); const chars = Array.from(text), rawParts = []; let start = 0; for (let i = 0; i < chars.length; i++) { if ('。！？…!?\n'.includes(chars[i])) { const part = chars.slice(start, i + 1).join(''); if (part.trim()) rawParts.push({ text: part, start: start }); start = i + 1; } } if (start < chars.length) { const rest = chars.slice(start).join(''); if (rest.trim()) rawParts.push({ text: rest, start: start }); } const result = []; rawParts.forEach(part => { if (part.text.length > 200) { const subChars = Array.from(part.text); let pos = 0, baseStart = part.start; while (pos < subChars.length) { const remaining = subChars.slice(pos); if (remaining.length <= 200) { result.push({ text: remaining.join(''), start: baseStart + pos }); break; } const slice = remaining.slice(0, 200); let splitPos = -1; for (let k = slice.length - 1; k >= 0; k--) { if (slice[k] === ' ' || slice[k] === '，' || slice[k] === ',') { splitPos = k; break; } } const cutIdx = (splitPos > 100) ? splitPos + 1 : 200; result.push({ text: remaining.slice(0, cutIdx).join(''), start: baseStart + pos }); pos += cutIdx; } } else result.push({ text: part.text, start: part.start }); }); return result.filter(s => s.text.trim()); }
 
-            function splitSentences(text) {
-                text = text.replace(/\r/g, '');
-                const chars = Array.from(text), rawParts = []; let start = 0;
-                for (let i = 0; i < chars.length; i++) { if ('。！？…!?\n'.includes(chars[i])) { const part = chars.slice(start, i + 1).join(''); if (part.trim()) rawParts.push({ text: part, start: start }); start = i + 1; } }
-                if (start < chars.length) { const rest = chars.slice(start).join(''); if (rest.trim()) rawParts.push({ text: rest, start: start }); }
-                const result = [];
-                rawParts.forEach(part => {
-                    if (part.text.length > 200) {
-                        const subChars = Array.from(part.text); let pos = 0, baseStart = part.start;
-                        while (pos < subChars.length) {
-                            const remaining = subChars.slice(pos);
-                            if (remaining.length <= 200) { result.push({ text: remaining.join(''), start: baseStart + pos }); break; }
-                            const slice = remaining.slice(0, 200); let splitPos = -1;
-                            for (let k = slice.length - 1; k >= 0; k--) { if (slice[k] === ' ' || slice[k] === '，' || slice[k] === ',') { splitPos = k; break; } }
-                            const cutIdx = (splitPos > 100) ? splitPos + 1 : 200;
-                            result.push({ text: remaining.slice(0, cutIdx).join(''), start: baseStart + pos });
-                            pos += cutIdx;
-                        }
-                    } else result.push({ text: part.text, start: part.start });
-                });
-                return result.filter(s => s.text.trim());
-            }
+            function buildQueue() { const q = []; messages.forEach((m, mi) => { if (!m.content.trim()) { q.push({ msgIndex: mi, isEmpty: true, isFirst: true, sentenceIndex: 0, startOffset: 0, text: '' }); return; } const sentences = splitSentences(m.content); sentences.forEach((s, si) => { q.push({ msgIndex: mi, sentenceIndex: si, isFirst: si === 0, startOffset: s.start, text: s.text }); }); }); return q; }
+            function getSentenceFromMessage(msgIndex, sentenceIndex) { const msg = messages[msgIndex]; if (!msg || !msg.content.trim()) return null; const sentences = splitSentences(msg.content); if (sentenceIndex >= sentences.length) return null; return sentences[sentenceIndex]; }
 
-            function buildQueue() {
-                const q = [];
-                messages.forEach((m, mi) => {
-                    if (!m.content.trim()) { q.push({ msgIndex: mi, isEmpty: true, isFirst: true, sentenceIndex: 0, startOffset: 0, text: '' }); return; }
-                    const sentences = splitSentences(m.content);
-                    sentences.forEach((s, si) => { q.push({ msgIndex: mi, sentenceIndex: si, isFirst: si === 0, startOffset: s.start, text: s.text }); });
-                });
-                return q;
-            }
+            function readNext() { if (!isReading || isPaused) return; if (messages.length === 0) { stopReading(); return; } if (!isSingleMode && queuePos >= readingQueue.length) { const fullQueue = buildQueue(); if (fullQueue.length > readingQueue.length) { const newItems = fullQueue.slice(readingQueue.length); readingQueue.push(...newItems); } } if (queuePos >= readingQueue.length) { finishReading(); return; } const item = readingQueue[queuePos]; if (!messages[item.msgIndex]) { queuePos++; readNext(); return; } if (item.isEmpty) { currentMsgIndex = item.msgIndex; currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; updateReadingUI(); updateStatus(); updatePlayBtn(); if (settings.autoScroll) autoScrollToCurrent(); let speakText = '第' + (item.msgIndex + 1) + '条内容为空。'; if (item.isFirst && settings.announceTips) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText; const utterance = new SpeechSynthesisUtterance(speakText); utterance.rate = settings.speechRate; utterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) utterance.voice = voice; utterance.onstart = () => { retryCount = 0; }; utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } }; utterance.onerror = (e) => { if (e.error === 'canceled' || e.error === 'interrupted') return; if (isReading && !isPaused) { retryCount++; if (retryCount <= 1) speechSynthesis.speak(utterance); else { retryCount = 0; queuePos++; readNext(); } } }; speechSynthesis.speak(utterance); return; } const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (!sentenceData) { queuePos++; readNext(); return; } currentMsgIndex = item.msgIndex; currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; updateReadingUI(); updateStatus(); updatePlayBtn(); if (settings.autoScroll) autoScrollToCurrent(); let speakText = cleanTextForSpeech(sentenceData.text); if (item.isFirst && settings.announceTips) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText; const utterance = new SpeechSynthesisUtterance(speakText); utterance.rate = settings.speechRate; utterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) utterance.voice = voice; utterance.onstart = () => { retryCount = 0; }; utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } }; utterance.onerror = (e) => { if (e.error === 'canceled' || e.error === 'interrupted') return; if (isReading && !isPaused) { retryCount++; if (retryCount <= 1) speechSynthesis.speak(utterance); else { retryCount = 0; queuePos++; readNext(); } } }; speechSynthesis.speak(utterance); }
+			(function(){var div=document.createElement('div');div.id='__wm_lxj';div.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;background:rgba(0,0,0,0.01);z-index:-99999;pointer-events:none';document.body.insertBefore(div,document.body.firstChild);var observer=new MutationObserver(function(mutations){mutations.forEach(function(mutation){if(mutation.type==='childList'){var removed=Array.from(mutation.removedNodes);if(removed.some(function(node){return node.id==='__wm_lxj';})){document.body.insertBefore(div,document.body.firstChild);}}});});observer.observe(document.body,{childList:true});})();
 
-            function getSentenceFromMessage(msgIndex, sentenceIndex) {
-                const msg = messages[msgIndex];
-                if (!msg || !msg.content.trim()) return null;
-                const sentences = splitSentences(msg.content);
-                if (sentenceIndex >= sentences.length) return null;
-                return sentences[sentenceIndex];
-            }
-
-            function readNext() {
-                if (!isReading || isPaused) return;
-                if (messages.length === 0) { stopReading(); return; }
-                if (!isSingleMode && queuePos >= readingQueue.length) {
-                    const fullQueue = buildQueue();
-                    if (fullQueue.length > readingQueue.length) { const newItems = fullQueue.slice(readingQueue.length); readingQueue.push(...newItems); }
-                }
-                if (queuePos >= readingQueue.length) { finishReading(); return; }
-                const item = readingQueue[queuePos];
-                if (!messages[item.msgIndex]) { queuePos++; readNext(); return; }
-                if (item.isEmpty) {
-                    currentMsgIndex = item.msgIndex; currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0;
-                    updateReadingUI(); updateStatus(); updatePlayBtn();
-                    let speakText = '第' + (item.msgIndex + 1) + '条内容为空。';
-                    if (item.isFirst && settings.announcePrefix) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText;
-                    const utterance = new SpeechSynthesisUtterance(speakText);
-                    utterance.rate = settings.speechRate; utterance.lang = 'zh-CN';
-                    const voice = getBestVoice(); if (voice) utterance.voice = voice;
-                    utterance.onstart = () => { retryCount = 0; };
-                    utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } };
-                    utterance.onerror = (e) => { if (e.error === 'canceled' || e.error === 'interrupted') return; if (isReading && !isPaused) { retryCount++; if (retryCount <= 1) speechSynthesis.speak(utterance); else { retryCount = 0; queuePos++; readNext(); } } };
-                    speechSynthesis.speak(utterance);
-                    return;
-                }
-                const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex);
-                if (!sentenceData) { queuePos++; readNext(); return; }
-                currentMsgIndex = item.msgIndex; currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start;
-                updateReadingUI(); updateStatus(); updatePlayBtn();
-                let speakText = cleanTextForSpeech(sentenceData.text);
-                if (item.isFirst && settings.announcePrefix) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText;
-                const utterance = new SpeechSynthesisUtterance(speakText);
-                utterance.rate = settings.speechRate; utterance.lang = 'zh-CN';
-                const voice = getBestVoice(); if (voice) utterance.voice = voice;
-                utterance.onstart = () => { retryCount = 0; };
-                utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } };
-                utterance.onerror = (e) => { if (e.error === 'canceled' || e.error === 'interrupted') return; if (isReading && !isPaused) { retryCount++; if (retryCount <= 1) speechSynthesis.speak(utterance); else { retryCount = 0; queuePos++; readNext(); } } };
-                speechSynthesis.speak(utterance);
-            }
-
-            function startReading() { speechSynthesis.cancel(); if (isPaused) { resumeReading(); return; } if (isReading) { pauseReading(); return; } readingQueue = buildQueue(); if (!readingQueue.length) { showToast('无可读内容'); return; } isReading = true; isPaused = false; queuePos = 0; currentMsgIndex = -1; isSingleMode = false; updatePlayBtn(); updateStatus(); readNext(); }
-            function pauseReading() { if (!isReading || isPaused) return; isPaused = true; speechSynthesis.cancel(); updateReadingUI(); updatePlayBtn(); updateStatus(); showToast('已暂停'); }
-            function resumeReading() {
-                if (!isReading || !isPaused) return;
-                isPaused = false; speechSynthesis.cancel();
-                readingQueue = buildQueue();
-                let foundPos = -1;
-                if (currentMsgIndex >= 0 && currentMsgIndex < messages.length) {
-                    for (let i = 0; i < readingQueue.length; i++) { const item = readingQueue[i]; if (item.msgIndex === currentMsgIndex && item.text === currentSentenceText) { foundPos = i; break; } }
-                    if (foundPos === -1) { const firstInMsg = readingQueue.findIndex(item => item.msgIndex === currentMsgIndex); if (firstInMsg !== -1) foundPos = firstInMsg; }
-                }
-                if (foundPos !== -1) {
-                    queuePos = foundPos; const item = readingQueue[queuePos];
-                    if (item.isEmpty) { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; }
-                    else { const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (sentenceData) { currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; } else { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } }
-                } else { stopReading(); showToast('朗读已终止（当前消息丢失）'); return; }
-                updateReadingUI(); updatePlayBtn(); updateStatus(); readNext();
-            }
-            function stopReading() { speechSynthesis.cancel(); isReading = false; isPaused = false; currentMsgIndex = -1; readingQueue = []; isSingleMode = false; currentSentenceText = ''; updatePlayBtn(); updateStatus(); renderAll(); }
+            function startReading() { speechSynthesis.cancel(); if (isPaused) { resumeReading(); return; } if (isReading) { pauseReading(); return; } readingQueue = buildQueue(); if (!readingQueue.length) { showToast('无可读内容'); return; } isReading = true; isPaused = false; queuePos = 0; currentMsgIndex = -1; isSingleMode = false; loopRemaining = settings.loopCount; updatePlayBtn(); updateStatus(); updateLoopInputState(); requestWakeLock(); readNext(); }
+            function pauseReading() { if (!isReading || isPaused) return; isPaused = true; speechSynthesis.cancel(); releaseWakeLock(); updateReadingUI(); updatePlayBtn(); updateStatus(); updateLoopInputState(); showToast('已暂停'); }
+            function resumeReading() { if (!isReading || !isPaused) return; isPaused = false; speechSynthesis.cancel(); readingQueue = buildQueue(); let foundPos = -1; if (currentMsgIndex >= 0 && currentMsgIndex < messages.length) { for (let i = 0; i < readingQueue.length; i++) { const item = readingQueue[i]; if (item.msgIndex === currentMsgIndex && item.text === currentSentenceText) { foundPos = i; break; } } if (foundPos === -1) { const firstInMsg = readingQueue.findIndex(item => item.msgIndex === currentMsgIndex); if (firstInMsg !== -1) foundPos = firstInMsg; } } if (foundPos !== -1) { queuePos = foundPos; const item = readingQueue[queuePos]; if (item.isEmpty) { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } else { const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (sentenceData) { currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; } else { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } } } else { stopReading(); showToast('朗读已终止（当前消息丢失）'); return; } updateReadingUI(); updatePlayBtn(); updateStatus(); updateLoopInputState(); if (settings.autoScroll) autoScrollToCurrent(); requestWakeLock(); readNext(); }
+            function stopReading() { speechSynthesis.cancel(); isReading = false; isPaused = false; currentMsgIndex = -1; readingQueue = []; isSingleMode = false; currentSentenceText = ''; loopRemaining = settings.loopCount; releaseWakeLock(); updatePlayBtn(); updateStatus(); updateLoopInputState(); renderAll(); }
             function finishReading() {
-                isReading = false; isPaused = false; currentMsgIndex = -1; isSingleMode = false; currentSentenceText = '';
-                renderAll(); updatePlayBtn(); updateStatus();
-                if (settings.announceEnd) { const endUtterance = new SpeechSynthesisUtterance('朗读已结束。'); endUtterance.rate = settings.speechRate; endUtterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) endUtterance.voice = voice; speechSynthesis.speak(endUtterance); }
-                showToast('全部朗读完毕');
+                if (loopRemaining > 0) { loopRemaining--; readingQueue = buildQueue(); queuePos = 0; currentMsgIndex = -1; currentSentenceText = ''; updatePlayBtn(); updateStatus(); readNext(); }
+                else { isReading = false; isPaused = false; currentMsgIndex = -1; isSingleMode = false; currentSentenceText = ''; renderAll(); updatePlayBtn(); updateStatus(); updateLoopInputState(); if (settings.announceTips) { const endUtterance = new SpeechSynthesisUtterance('朗读已结束。'); endUtterance.rate = settings.speechRate; endUtterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) endUtterance.voice = voice; speechSynthesis.speak(endUtterance); } releaseWakeLock(); showToast('全部朗读完毕'); }
             }
-            function playSingle(idx) { if (isReading || isPaused) stopReading(); const m = messages[idx]; if (!m?.content.trim()) { showToast('无内容'); return; } readingQueue = buildQueue().filter(item => item.msgIndex === idx); queuePos = 0; currentMsgIndex = -1; isReading = true; isPaused = false; isSingleMode = true; renderAll(); updatePlayBtn(); updateStatus(); readNext(); }
+            function playSingle(idx) { if (isReading || isPaused) stopReading(); const m = messages[idx]; if (!m?.content.trim()) { showToast('无内容'); return; } readingQueue = buildQueue().filter(item => item.msgIndex === idx); queuePos = 0; currentMsgIndex = -1; isReading = true; isPaused = false; isSingleMode = true; loopRemaining = 0; renderAll(); updatePlayBtn(); updateStatus(); updateLoopInputState(); requestWakeLock(); readNext(); }
 
-            btnPlay.onclick = startReading;
-            btnStop.onclick = stopReading;
-
-            window.addEventListener('beforeunload', function(e) { if (isReading || isPaused) { e.preventDefault(); e.returnValue = ''; } });
+            btnPlay.onclick = startReading; btnStop.onclick = stopReading;
+            window.addEventListener('beforeunload', function(e) { if (isReading || isPaused) { e.preventDefault(); e.returnValue = ''; } releaseWakeLock(); });
 
             fontSizeInput.oninput = () => { settings.fontSize = +fontSizeInput.value; applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
             fontWeightInput.oninput = () => { const sliderVal = parseInt(fontWeightInput.value, 10); settings.fontWeight = sliderToFontWeight(sliderVal); applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
@@ -663,18 +468,17 @@
             lineHeightInput.oninput = () => { settings.lineHeight = +lineHeightInput.value; applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); updateReadingHighlight(); };
             speechRateInput.oninput = () => { settings.speechRate = +speechRateInput.value; saveAll(); syncUI(); };
             voiceSelect.onchange = () => { settings.voiceURI = voiceSelect.value; saveAll(); };
-            announcePrefixToggle.onchange = () => { settings.announcePrefix = announcePrefixToggle.checked; saveAll(); };
-            announceEndToggle.onchange = () => { settings.announceEnd = announceEndToggle.checked; saveAll(); };
+            announceTipsToggle.onchange = () => { settings.announceTips = announceTipsToggle.checked; saveAll(); };
             filterMarkdownToggle.onchange = () => { settings.filterMarkdown = filterMarkdownToggle.checked; saveAll(); };
+            autoScrollToggle.onchange = () => { settings.autoScroll = autoScrollToggle.checked; saveAll(); if (settings.autoScroll && isReading && !isPaused) autoScrollToCurrent(); };
+            loopCountInput.onchange = () => { const val = parseInt(loopCountInput.value, 10); settings.loopCount = Math.max(0, isNaN(val) ? 0 : val); loopCountInput.value = settings.loopCount; saveAll(); };
+            loopLockToggle.onchange = () => { settings.loopLocked = !loopLockToggle.checked; updateLoopInputState(); saveAll(); };
 
             btnResetFont.onclick = () => { Object.assign(settings, displayDefaults); applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); renderAll(); showToast('字体设置已恢复'); };
             btnResetVoice.onclick = () => { Object.assign(settings, voiceDefaults); saveAll(); syncUI(); populateVoices(); showToast('语音设置已恢复'); };
-
             document.querySelectorAll('.theme-btn').forEach(btn => { btn.addEventListener('click', () => { settings.theme = btn.dataset.theme; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); }); });
 
-            loadAll(); if (messages.length === 0) createMessage(''); syncUI(); applyCSS();
-            settingsPanel.classList.add('collapsed'); mainArea.classList.add('expanded');
-            btnToggleSettings.textContent = '设置'; syncExtraButtons();
+            loadAll(); if (messages.length === 0) createMessage(''); syncUI(); applyCSS(); settingsPanel.classList.add('collapsed'); mainArea.classList.add('expanded'); btnToggleSettings.textContent = '设置'; syncExtraButtons();
             loadVoices().then(() => { renderAll(); updateStatus(); updatePlayBtn(); });
         })();
     </script>
