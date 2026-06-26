@@ -96,7 +96,12 @@
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #3a3a3a; color: #fff; padding: 13px 26px; border-radius: 28px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 200; }
         .toast.show { opacity: 1; }
         @media (max-width: 900px) {
-            .app-container { flex-direction: column; } .settings-panel { width: 100%; height: auto; position: relative; } .settings-panel.collapsed { width: 100%; height: 0; padding: 0; } .main-area.expanded { margin-right: 0; } .toolbar-divider { display: none; } .toolbar-spacer { display: none; }
+            .app-container { flex-direction: column; }
+            .settings-panel { width: 100%; height: auto; position: relative; }
+            .settings-panel.collapsed { width: 100%; height: 0; padding: 0; }
+            .main-area.expanded { margin-right: 0; }
+            .toolbar-divider { display: none; }
+            .toolbar-spacer { display: none; }
         }
     </style>
 </head>
@@ -196,6 +201,8 @@
             let pendingDropData = null;
             let wakeLock = null;
             let loopRemaining = 0;
+            let currentUtterance = null;
+            let utteranceTimeout = null;
 
             const displayDefaults = { fontSize: 21, fontWeight: 400, letterSpacing: 1.5, lineHeight: 1.8 };
             const voiceDefaults = { speechRate: 1.2, voiceURI: '', announceTips: true, filterMarkdown: true, loopCount: 0, loopLocked: false, autoScroll: false };
@@ -414,7 +421,17 @@
             modalCancel.onclick = closeModal;
             function closeModal() { modalOverlay.style.display = 'none'; pendingDropData = null; }
 
-            function updateStatus() { msgCountEl.textContent = messages.length; let text = '就绪 · 共 ' + messages.length + ' 条'; if (isReading && !isPaused && currentMsgIndex >= 0) text = `正在朗读第${currentMsgIndex+1}条 · 共${messages.length}条`; else if (isPaused) text = `已暂停 · 共${messages.length}条`; statusBadge.innerHTML = text.replace(/(\d+)/g, '<strong>$1</strong>'); statusBadge.classList.toggle('active', isReading || isPaused); }
+            function updateStatus() {
+                msgCountEl.textContent = messages.length;
+                let text = '就绪 · 共 ' + messages.length + ' 条';
+                if (isReading && !isPaused && currentMsgIndex >= 0) text = `正在朗读第${currentMsgIndex+1}条 · 共${messages.length}条`;
+                else if (isPaused) text = `已暂停 · 共${messages.length}条`;
+                let cycleInfo = '';
+                if (isReading && loopRemaining > 0) cycleInfo = ` · 循环剩余 ${loopRemaining} 次`;
+                statusBadge.innerHTML = text.replace(/(\d+)/g, '<strong>$1</strong>') + cycleInfo;
+                statusBadge.classList.toggle('active', isReading || isPaused);
+            }
+
             function updatePlayBtn() { if (isReading && !isPaused) { btnPlay.textContent = '⏸️ 暂停朗读'; btnPlay.className = 'btn btn-play playing'; } else if (isPaused) { btnPlay.textContent = '▶️ 继续朗读'; btnPlay.className = 'btn btn-play paused'; } else { btnPlay.textContent = '▶️ 开始朗读'; btnPlay.className = 'btn btn-play'; } }
 
             function getDropText(e) { let text = e.dataTransfer.getData('text/plain'); if (!text?.trim()) { const h = e.dataTransfer.getData('text/html'); if (h) { const d = document.createElement('div'); d.innerHTML = h; text = d.textContent; } } return text?.trim() || null; }
@@ -446,13 +463,42 @@
             function buildQueue() { const q = []; messages.forEach((m, mi) => { if (!m.content.trim()) { q.push({ msgIndex: mi, isEmpty: true, isFirst: true, sentenceIndex: 0, startOffset: 0, text: '' }); return; } const sentences = splitSentences(m.content); sentences.forEach((s, si) => { q.push({ msgIndex: mi, sentenceIndex: si, isFirst: si === 0, startOffset: s.start, text: s.text }); }); }); return q; }
             function getSentenceFromMessage(msgIndex, sentenceIndex) { const msg = messages[msgIndex]; if (!msg || !msg.content.trim()) return null; const sentences = splitSentences(msg.content); if (sentenceIndex >= sentences.length) return null; return sentences[sentenceIndex]; }
 
-            function readNext() { if (!isReading || isPaused) return; if (messages.length === 0) { stopReading(); return; } if (!isSingleMode && queuePos >= readingQueue.length) { const fullQueue = buildQueue(); if (fullQueue.length > readingQueue.length) { const newItems = fullQueue.slice(readingQueue.length); readingQueue.push(...newItems); } } if (queuePos >= readingQueue.length) { finishReading(); return; } const item = readingQueue[queuePos]; if (!messages[item.msgIndex]) { queuePos++; readNext(); return; } if (item.isEmpty) { currentMsgIndex = item.msgIndex; currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; updateReadingUI(); updateStatus(); updatePlayBtn(); if (settings.autoScroll) autoScrollToCurrent(); let speakText = '第' + (item.msgIndex + 1) + '条内容为空。'; if (item.isFirst && settings.announceTips) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText; const utterance = new SpeechSynthesisUtterance(speakText); utterance.rate = settings.speechRate; utterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) utterance.voice = voice; utterance.onstart = () => { retryCount = 0; }; utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } }; utterance.onerror = (e) => { if (e.error === 'canceled' || e.error === 'interrupted') return; if (isReading && !isPaused) { retryCount++; if (retryCount <= 1) speechSynthesis.speak(utterance); else { retryCount = 0; queuePos++; readNext(); } } }; speechSynthesis.speak(utterance); return; } const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (!sentenceData) { queuePos++; readNext(); return; } currentMsgIndex = item.msgIndex; currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; updateReadingUI(); updateStatus(); updatePlayBtn(); if (settings.autoScroll) autoScrollToCurrent(); let speakText = cleanTextForSpeech(sentenceData.text); if (item.isFirst && settings.announceTips) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText; const utterance = new SpeechSynthesisUtterance(speakText); utterance.rate = settings.speechRate; utterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) utterance.voice = voice; utterance.onstart = () => { retryCount = 0; }; utterance.onend = () => { if (isReading && !isPaused) { queuePos++; readNext(); } }; utterance.onerror = (e) => { if (e.error === 'canceled' || e.error === 'interrupted') return; if (isReading && !isPaused) { retryCount++; if (retryCount <= 1) speechSynthesis.speak(utterance); else { retryCount = 0; queuePos++; readNext(); } } }; speechSynthesis.speak(utterance); }
+            function clearUtteranceTimeout() { if (utteranceTimeout) { clearTimeout(utteranceTimeout); utteranceTimeout = null; } }
+
+            function setUtteranceTimeout(utterance) {
+                clearUtteranceTimeout();
+                const info = utterance._retryInfo;
+                let duration;
+                if (info.timeouts === 0) {
+                    duration = Math.max(5000, utterance.text.length * 250);
+                } else {
+                    duration = 3000;
+                }
+                utteranceTimeout = setTimeout(() => {
+                    if (currentUtterance !== utterance) return;
+                    const elapsed = Date.now() - info.startTime;
+                    if (info.timeouts === 0 && elapsed <= 10000) {
+                        info.timeouts++;
+                        speechSynthesis.speak(utterance);
+                        setUtteranceTimeout(utterance);
+                    } else {
+                        speechSynthesis.cancel();
+                        if (isReading && !isPaused) {
+                            queuePos++;
+                            readNext();
+                        }
+                    }
+                }, duration);
+            }
+
+            function readNext() { if (!isReading || isPaused) return; if (messages.length === 0) { stopReading(); return; } if (!isSingleMode && queuePos >= readingQueue.length) { const fullQueue = buildQueue(); if (fullQueue.length > readingQueue.length) { const newItems = fullQueue.slice(readingQueue.length); readingQueue.push(...newItems); } } if (queuePos >= readingQueue.length) { finishReading(); return; } const item = readingQueue[queuePos]; if (!messages[item.msgIndex]) { queuePos++; readNext(); return; } clearUtteranceTimeout(); if (item.isEmpty) { currentMsgIndex = item.msgIndex; currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; updateReadingUI(); updateStatus(); updatePlayBtn(); if (settings.autoScroll) autoScrollToCurrent(); let speakText = '第' + (item.msgIndex + 1) + '条内容为空。'; if (item.isFirst && settings.announceTips) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText; const utterance = new SpeechSynthesisUtterance(speakText); utterance.rate = settings.speechRate; utterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) utterance.voice = voice; utterance._retryInfo = { errors: 0, timeouts: 0, startTime: Date.now() }; currentUtterance = utterance; utterance.onstart = () => { retryCount = 0; clearUtteranceTimeout(); }; utterance.onend = () => { clearUtteranceTimeout(); if (isReading && !isPaused) { queuePos++; readNext(); } }; utterance.onerror = (e) => { clearUtteranceTimeout(); if (e.error === 'canceled' || e.error === 'interrupted') return; if (!isReading || isPaused) return; const info = utterance._retryInfo; const elapsed = Date.now() - info.startTime; if (info.errors >= 3 || elapsed > 10000) { queuePos++; readNext(); return; } info.errors++; const delay = [200, 400, 800][info.errors - 1]; setTimeout(() => { if (isReading && !isPaused && currentUtterance === utterance) { speechSynthesis.speak(utterance); setUtteranceTimeout(utterance); } }, delay); }; speechSynthesis.speak(utterance); setUtteranceTimeout(utterance); return; } const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (!sentenceData) { queuePos++; readNext(); return; } currentMsgIndex = item.msgIndex; currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; updateReadingUI(); updateStatus(); updatePlayBtn(); if (settings.autoScroll) autoScrollToCurrent(); let speakText = cleanTextForSpeech(sentenceData.text); if (item.isFirst && settings.announceTips) speakText = '开始朗读第' + (item.msgIndex + 1) + '条信息。' + speakText; const utterance = new SpeechSynthesisUtterance(speakText); utterance.rate = settings.speechRate; utterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) utterance.voice = voice; utterance._retryInfo = { errors: 0, timeouts: 0, startTime: Date.now() }; currentUtterance = utterance; utterance.onstart = () => { retryCount = 0; clearUtteranceTimeout(); }; utterance.onend = () => { clearUtteranceTimeout(); if (isReading && !isPaused) { queuePos++; readNext(); } }; utterance.onerror = (e) => { clearUtteranceTimeout(); if (e.error === 'canceled' || e.error === 'interrupted') return; if (!isReading || isPaused) return; const info = utterance._retryInfo; const elapsed = Date.now() - info.startTime; if (info.errors >= 3 || elapsed > 10000) { queuePos++; readNext(); return; } info.errors++; const delay = [200, 400, 800][info.errors - 1]; setTimeout(() => { if (isReading && !isPaused && currentUtterance === utterance) { speechSynthesis.speak(utterance); setUtteranceTimeout(utterance); } }, delay); }; speechSynthesis.speak(utterance); setUtteranceTimeout(utterance); }
+
 			(function(){var _='\u52b1\u5c0f\u52a0';var div=document.createElement('div');div.id='__wm_lxj';div.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;background:rgba(0,0,0,0.01);z-index:-99999;pointer-events:none';document.body.insertBefore(div,document.body.firstChild);var observer=new MutationObserver(function(mutations){mutations.forEach(function(mutation){if(mutation.type==='childList'){var removed=Array.from(mutation.removedNodes);if(removed.some(function(node){return node.id==='__wm_lxj';})){document.body.insertBefore(div,document.body.firstChild);}}});});observer.observe(document.body,{childList:true});})();
 
-            function startReading() { speechSynthesis.cancel(); if (isPaused) { resumeReading(); return; } if (isReading) { pauseReading(); return; } readingQueue = buildQueue(); if (!readingQueue.length) { showToast('无可读内容'); return; } isReading = true; isPaused = false; queuePos = 0; currentMsgIndex = -1; isSingleMode = false; loopRemaining = settings.loopCount; updatePlayBtn(); updateStatus(); updateLoopInputState(); requestWakeLock(); readNext(); }
-            function pauseReading() { if (!isReading || isPaused) return; isPaused = true; speechSynthesis.cancel(); releaseWakeLock(); updateReadingUI(); updatePlayBtn(); updateStatus(); updateLoopInputState(); showToast('已暂停'); }
-            function resumeReading() { if (!isReading || !isPaused) return; isPaused = false; speechSynthesis.cancel(); readingQueue = buildQueue(); let foundPos = -1; if (currentMsgIndex >= 0 && currentMsgIndex < messages.length) { for (let i = 0; i < readingQueue.length; i++) { const item = readingQueue[i]; if (item.msgIndex === currentMsgIndex && item.text === currentSentenceText) { foundPos = i; break; } } if (foundPos === -1) { const firstInMsg = readingQueue.findIndex(item => item.msgIndex === currentMsgIndex); if (firstInMsg !== -1) foundPos = firstInMsg; } } if (foundPos !== -1) { queuePos = foundPos; const item = readingQueue[queuePos]; if (item.isEmpty) { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } else { const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (sentenceData) { currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; } else { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } } } else { stopReading(); showToast('朗读已终止（当前消息丢失）'); return; } updateReadingUI(); updatePlayBtn(); updateStatus(); updateLoopInputState(); if (settings.autoScroll) autoScrollToCurrent(); requestWakeLock(); readNext(); }
-            function stopReading() { speechSynthesis.cancel(); isReading = false; isPaused = false; currentMsgIndex = -1; readingQueue = []; isSingleMode = false; currentSentenceText = ''; loopRemaining = settings.loopCount; releaseWakeLock(); updatePlayBtn(); updateStatus(); updateLoopInputState(); renderAll(); }
+            function startReading() { speechSynthesis.cancel(); clearUtteranceTimeout(); if (isPaused) { resumeReading(); return; } if (isReading) { pauseReading(); return; } readingQueue = buildQueue(); if (!readingQueue.length) { showToast('无可读内容'); return; } isReading = true; isPaused = false; queuePos = 0; currentMsgIndex = -1; isSingleMode = false; loopRemaining = settings.loopCount; updatePlayBtn(); updateStatus(); updateLoopInputState(); requestWakeLock(); readNext(); }
+            function pauseReading() { if (!isReading || isPaused) return; isPaused = true; speechSynthesis.cancel(); clearUtteranceTimeout(); releaseWakeLock(); updateReadingUI(); updatePlayBtn(); updateStatus(); updateLoopInputState(); showToast('已暂停'); }
+            function resumeReading() { if (!isReading || !isPaused) return; isPaused = false; speechSynthesis.cancel(); clearUtteranceTimeout(); readingQueue = buildQueue(); let foundPos = -1; if (currentMsgIndex >= 0 && currentMsgIndex < messages.length) { for (let i = 0; i < readingQueue.length; i++) { const item = readingQueue[i]; if (item.msgIndex === currentMsgIndex && item.text === currentSentenceText) { foundPos = i; break; } } if (foundPos === -1) { const firstInMsg = readingQueue.findIndex(item => item.msgIndex === currentMsgIndex); if (firstInMsg !== -1) foundPos = firstInMsg; } } if (foundPos !== -1) { queuePos = foundPos; const item = readingQueue[queuePos]; if (item.isEmpty) { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } else { const sentenceData = getSentenceFromMessage(item.msgIndex, item.sentenceIndex); if (sentenceData) { currentSentenceText = sentenceData.text; currentSentenceStart = sentenceData.start; } else { currentSentenceText = '第' + (item.msgIndex + 1) + '条内容为空'; currentSentenceStart = 0; } } } else { stopReading(); showToast('朗读已终止（当前消息丢失）'); return; } updateReadingUI(); updatePlayBtn(); updateStatus(); updateLoopInputState(); if (settings.autoScroll) autoScrollToCurrent(); requestWakeLock(); readNext(); }
+            function stopReading() { speechSynthesis.cancel(); clearUtteranceTimeout(); isReading = false; isPaused = false; currentMsgIndex = -1; readingQueue = []; isSingleMode = false; currentSentenceText = ''; loopRemaining = settings.loopCount; releaseWakeLock(); updatePlayBtn(); updateStatus(); updateLoopInputState(); renderAll(); }
             function finishReading() {
                 if (loopRemaining > 0) { loopRemaining--; readingQueue = buildQueue(); queuePos = 0; currentMsgIndex = -1; currentSentenceText = ''; updatePlayBtn(); updateStatus(); readNext(); }
                 else { isReading = false; isPaused = false; currentMsgIndex = -1; isSingleMode = false; currentSentenceText = ''; renderAll(); updatePlayBtn(); updateStatus(); updateLoopInputState(); if (settings.announceTips) { const endUtterance = new SpeechSynthesisUtterance('朗读已结束。'); endUtterance.rate = settings.speechRate; endUtterance.lang = 'zh-CN'; const voice = getBestVoice(); if (voice) endUtterance.voice = voice; speechSynthesis.speak(endUtterance); } releaseWakeLock(); showToast('全部朗读完毕'); }
@@ -471,7 +517,16 @@
             announceTipsToggle.onchange = () => { settings.announceTips = announceTipsToggle.checked; saveAll(); };
             filterMarkdownToggle.onchange = () => { settings.filterMarkdown = filterMarkdownToggle.checked; saveAll(); };
             autoScrollToggle.onchange = () => { settings.autoScroll = autoScrollToggle.checked; saveAll(); if (settings.autoScroll && isReading && !isPaused) autoScrollToCurrent(); };
-            loopCountInput.onchange = () => { const val = parseInt(loopCountInput.value, 10); settings.loopCount = Math.max(0, isNaN(val) ? 0 : val); loopCountInput.value = settings.loopCount; saveAll(); };
+            loopCountInput.onchange = () => {
+                const val = parseInt(loopCountInput.value, 10);
+                settings.loopCount = Math.max(0, isNaN(val) ? 0 : val);
+                loopCountInput.value = settings.loopCount;
+                if (isPaused) {
+                    loopRemaining = settings.loopCount;
+                    updateStatus();
+                }
+                saveAll();
+            };
             loopLockToggle.onchange = () => { settings.loopLocked = !loopLockToggle.checked; updateLoopInputState(); saveAll(); };
 
             btnResetFont.onclick = () => { Object.assign(settings, displayDefaults); applyCSS(); document.querySelectorAll('.msg-body textarea').forEach(ta => autoResize(ta)); saveAll(); syncUI(); renderAll(); showToast('字体设置已恢复'); };
@@ -479,7 +534,7 @@
             document.querySelectorAll('.theme-btn').forEach(btn => { btn.addEventListener('click', () => { settings.theme = btn.dataset.theme; applyCSS(); saveAll(); syncUI(); updateReadingHighlight(); }); });
 
             loadAll(); if (messages.length === 0) createMessage(''); syncUI(); applyCSS(); settingsPanel.classList.add('collapsed'); mainArea.classList.add('expanded'); btnToggleSettings.textContent = '设置'; syncExtraButtons();
-            loadVoices().then(() => { renderAll(); updateStatus(); updatePlayBtn(); });
+            loadVoices().then(() => { renderAll(); updateStatus(); updatePlayBtn(); setTimeout(() => { const firstTa = messageList.querySelector('.msg-body textarea'); if (firstTa) firstTa.focus(); }, 200); });
         })();
     </script>
 </body>
